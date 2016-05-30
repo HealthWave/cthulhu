@@ -1,5 +1,5 @@
 # Cthulhu
-Cthulhu allows you to create a message network between apps using RabbitMQ as message broker.
+Cthulhu allows you to create a message network between apps using RabbitMQ as message broker. For now, all messages get sent to all Cthulhu apps connected to the same broker.
 
 ## Usage
 ```bash
@@ -57,3 +57,21 @@ class ExampleHandler < Cthulhu::Handler
   end
 end
 ```
+
+If you use rails
+```
+gem 'cthulhu', '~>0.2.1', git: 'https://github.com/HealthWave/cthulhu.git'
+
+# FILE: config/initializers/cthulhu.rb
+Cthulhu::Application.name = 'my-app'
+# generate an unique UUID for this
+Cthulhu::Application.queue_name = Cthulhu::Application.name + 'UNIQUE UUID'
+Cthulhu::Application.logger = Logger.new("logs/#{Cthulhu::Application.name}.log")
+Cthulhu::Application.start(block: false) # run process on a separate thread
+
+# publish messages the same way...
+```
+
+
+## TODO
+- Allow direct messaging
