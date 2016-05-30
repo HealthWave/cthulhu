@@ -39,6 +39,20 @@ tail -f app/logs/my-app.log
 
 Publishing a message
 ```ruby
+# make sure 'my_action' is a method inside ExampleHandler
 message = {subject: 'example', action: 'my_action', payload: {id: 1, text: 'lorem ipsum'}}
 Cthulhu::Message.broadcast(message)
 ```
+
+Receiving messages
+```ruby
+# app/handlers/example_handler.rb
+class ExampleHandler < Cthulhu::Handler
+  def my_action
+    puts message
+    puts properties
+    puts headers
+    # do something awesome
+    ack! # or reject! or ignore!
+  end
+end
