@@ -56,3 +56,4 @@ class ExampleHandler < Cthulhu::Handler
     ack! # or reject! or ignore!
   end
 end
+```
