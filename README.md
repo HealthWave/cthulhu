@@ -66,7 +66,7 @@ gem 'cthulhu', '~>0.2.1', git: 'https://github.com/HealthWave/cthulhu.git'
 Cthulhu::Application.name = 'my-app'
 # generate an unique UUID for this
 Cthulhu::Application.queue_name = Cthulhu::Application.name + 'UNIQUE UUID'
-Cthulhu::Application.logger = Logger.new("logs/#{Cthulhu::Application.name}.log")
+Cthulhu::Application.logger = Logger.new("#{Rails.root}/log/#{Cthulhu::Application.name}.log")
 Cthulhu::Application.start(block: false) # run process on a separate thread
 
 # publish messages the same way...
