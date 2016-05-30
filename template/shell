@@ -1,0 +1,4 @@
+#!/bin/bash
+APP_NAME=__APP_NAME__
+docker exec -it $APP_NAME bash || \
+docker run --env-file env_vars -dit -v ${PWD}/app:/$APP_NAME --hostname $APP_NAME --name $APP_NAME $APP_NAME bash

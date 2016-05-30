@@ -1,0 +1,12 @@
+#!/bin/bash
+ENV=$1
+[[ -z $ENV ]] && ENV=development
+APP_NAME=__APP_NAME__
+echo Rebooting Docker container...
+docker ps -a |grep $APP_NAME >/dev/null && docker stop $APP_NAME && docker rm $APP_NAME && docker rmi $APP_NAME
+if [[ $ENV == "development" ]]; then
+  docker build -t $APP_NAME .
+  docker run --env-file env_vars -dit -v ${PWD}/app:/$APP_NAME --hostname $APP_NAME --name $APP_NAME $APP_NAME
+else
+  docker run --env-file env_vars -dit --hostname fullscript:$APP_NAME --name $APP_NAME $APP_NAME
+fi

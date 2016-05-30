@@ -1,0 +1,36 @@
+PATH
+  remote: .
+  specs:
+    cthulhu (0.2.1)
+      bunny (>= 2.3.1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    amq-protocol (2.0.1)
+    bunny (2.3.1)
+      amq-protocol (>= 2.0.1)
+    diff-lcs (1.2.5)
+    rspec (3.4.0)
+      rspec-core (~> 3.4.0)
+      rspec-expectations (~> 3.4.0)
+      rspec-mocks (~> 3.4.0)
+    rspec-core (3.4.4)
+      rspec-support (~> 3.4.0)
+    rspec-expectations (3.4.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.4.0)
+    rspec-mocks (3.4.1)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.4.0)
+    rspec-support (3.4.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  cthulhu!
+  rspec
+
+BUNDLED WITH
+   1.12.4
