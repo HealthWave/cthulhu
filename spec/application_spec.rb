@@ -100,7 +100,7 @@ describe Cthulhu::Application do
   it '#call_handler_for' do
     # expect that calling the method, the class will be instantiated
     # and the method called
-    expect_any_instance_of(TestHandler).to receive(:ack_test)
+    expect_any_instance_of(TestHandler).to receive(:handle_action).with("ack_test")
     subject.call_handler_for(properties, message)
   end
 
