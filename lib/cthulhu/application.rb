@@ -107,7 +107,7 @@ module Cthulhu
       method_name = headers["action"].downcase
       logger.info "Routing subject '#{headers["subject"]}' to #{class_name}##{method_name}"
       klass = Object.const_get class_name
-      klass.new(properties, message).public_send(method_name)
+      klass.new(properties, message).handle_action(method_name)
     end
   end
 end

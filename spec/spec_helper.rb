@@ -2,7 +2,10 @@ require 'bundler/setup'
 Bundler.setup
 
 require 'cthulhu' # and any other gems you need
-require 'support/bunny_mock'
+
+# Require all support files
+Dir[File.dirname(__FILE__) + '/support/*.rb'].each {|file| require file }
+
 
 RSpec.configure do |config|
   ENV['RABBIT_USER'] = 'user'
