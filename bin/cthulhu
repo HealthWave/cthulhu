@@ -9,72 +9,75 @@ gem_path = File.expand_path File.dirname(__FILE__)
 
 if command && ARGV[1]
   case command
-  when 'handler'
-    dir = "./handlers"
-    if File.directory?(dir)
-      handler_file_path = dir + "/" + ARGV[1].downcase + "_handler.rb"
-      handler_klass = ARGV[1].capitalize + "Handler"
-      File.open(handler_file_path, "w") do |file|
-        file.puts "class #{handler_klass} < Cthulhu::Handler"
-        file.puts "  # Methods created should match actions defined by you in the routes file."
-        file.puts "  # ATTENTION: all methods must return ack!, ignore! or requeue!"
-        file.puts "  # ack! means 'OK, REMOVE MESSAGE FROM QUEUE'"
-        file.puts "  # ignore! and requeue! require no explanation."
-        if ARGV[2]
-          file.puts "  def #{ARGV[2]}"
-          file.puts "    puts message"
-          file.puts "    ack!"
-          file.puts "  end"
-        end
-        file.puts "end"
-      end
-      puts "#{handler_file_path} created."
-    else
-      puts "You must run this command from the 'app' folder."
-    end
-  when 'new'
-    app_name = ARGV[1]
-    queue_uuid = SecureRandom.uuid
-    Dir.mkdir "./#{app_name}" unless File.exists?(app_name)
-    puts "Copying files FROM #{gem_path}/../template/. INTO #{Dir.pwd}/#{app_name} "
-    FileUtils.cp_r "#{gem_path}/../template/.", "./#{app_name}/"
-    files = `grep -rl '__APP_NAME__' #{app_name}`.inspect.gsub('\n', ':')
-    array = files.split(':')
-    array.pop
-    array.each do |file_name|
-      file_name = "#{Dir.pwd}/#{file_name}"
-      file_name = file_name.gsub('"', '')
-      text = File.read(file_name)
-      new_contents = text.gsub(/__APP_NAME__/, app_name)
-      new_contents = new_contents.gsub(/__QUEUE_UUID__/, queue_uuid)
-      # To write changes to the file, use:
-      File.open(file_name, "w") {|file| file.puts new_contents }
-    end
-    Dir.mkdir "./#{app_name}/app/logs" unless File.exists?("./#{app_name}/app/logs")
-    Dir.mkdir "./#{app_name}/app/tmp" unless File.exists?("./#{app_name}/app/tmp")
-    Dir.mkdir "./#{app_name}/app/lib" unless File.exists?("./#{app_name}/app/lib")
-    Dir.mkdir "./#{app_name}/app/handlers" unless File.exists?("./#{app_name}/app/handlers")
-    Dir.mkdir "./#{app_name}/app/models" unless File.exists?("./#{app_name}/app/models")
-    Dir.mkdir "./#{app_name}/app/spec" unless File.exists?("./#{app_name}/app/spec")
-    Dir.mkdir "./#{app_name}/app/config/initializers" unless File.exists?("./#{app_name}/app/config/initializers")
-    FileUtils.touch("./#{app_name}/app/logs/.keep")
-    FileUtils.touch("./#{app_name}/app/tmp/.keep")
-    FileUtils.touch("./#{app_name}/app/lib/.keep")
-    FileUtils.touch("./#{app_name}/app/models/.keep")
-    FileUtils.touch("./#{app_name}/app/handlers/.keep")
-    FileUtils.touch("./#{app_name}/app/specs/.keep")
-    FileUtils.touch("./#{app_name}/app/config/initializers/.keep")
-    File.open("./#{app_name}/.gitignore", "w") {|f| f.write(".DS_Store\napp/logs/*.log\napp/tmp/*.pid") }
-
-    puts "Done. No life matter."
-    puts "\nIMPORTANT: if you use docker-machine-nfs, run the following command now:"
-    puts "\ndocker-machine-nfs default -f -s=$PWD/#{app_name} -n='-alldirs -maproot=0'\n"
+  when 'handler' then new_handler
+  when 'new' then new_app
   else
     usage
   end
 else
   usage
 end
+
+def new_handler
+  dir = "./handlers"
+  if File.directory?(dir)
+    handler_file_path = dir + "/" + ARGV[1].downcase + "_handler.rb"
+    handler_klass = ARGV[1].capitalize + "Handler"
+    File.open(handler_file_path, "w") do |file|
+      file.puts "class #{handler_klass} < Cthulhu::Handler"
+      file.puts "  # Methods created should match actions defined by you in the routes file."
+      file.puts "  # ATTENTION: all methods must return ack!, ignore! or requeue!"
+      file.puts "  # ack! means 'OK, REMOVE MESSAGE FROM QUEUE'"
+      file.puts "  # ignore! and requeue! require no explanation."
+      if ARGV[2]
+        file.puts "  def #{ARGV[2]}"
+        file.puts "    puts message"
+        file.puts "    ack!"
+        file.puts "  end"
+      end
+      file.puts "end"
+    end
+    puts "#{handler_file_path} created."
+  else
+    puts "You must run this command from the 'app' folder."
+  end
+end
+
+def new_app
+  app_name = ARGV[1]
+  queue_uuid = SecureRandom.uuid
+  Dir.mkdir "./#{app_name}" unless File.exists?(app_name)
+  puts "Copying files FROM #{gem_path}/../template/. INTO #{Dir.pwd}/#{app_name} "
+  FileUtils.cp_r "#{gem_path}/../template/.", "./#{app_name}/"
+  files = `grep -rl '__APP_NAME__' #{app_name}`.inspect.gsub('\n', ':')
+  array = files.split(':')
+  array.pop
+  array.each do |file_name|
+    file_name = "#{Dir.pwd}/#{file_name}"
+    file_name = file_name.gsub('"', '')
+    text = File.read(file_name)
+    new_contents = text.gsub(/__APP_NAME__/, app_name)
+    new_contents = new_contents.gsub(/__QUEUE_UUID__/, queue_uuid)
+    # To write changes to the file, use:
+    File.open(file_name, "w") {|file| file.puts new_contents }
+  end
+
+  base_path = "./#{app_name}/app"
+  dir_names = ["logs", "tmp", "lib", "handlers", "models", "specs", "config/initializers"]
+
+  dir_names.each do |dir_name|
+    path = base_path + "/#{dir_name}"
+    Dir.mkdir(path) unless File.exists?(path)
+    FileUtils.touch("#{path}/.keep")
+  end
+
+  File.open("./#{app_name}/.gitignore", "w") {|f| f.write(".DS_Store\napp/logs/*.log\napp/tmp/*.pid") }
+
+  puts "Done. No life matter."
+  puts "\nIMPORTANT: if you use docker-machine-nfs, run the following command now:"
+  puts "\ndocker-machine-nfs default -f -s=$PWD/#{app_name} -n='-alldirs -maproot=0'\n"
+end
+
 
 def usage
   puts "Usage: cthulhu new app_name"
