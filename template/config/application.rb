@@ -8,7 +8,8 @@ Dir["./lib/cthulhu.rb"].each {|file| require file }
 Dir["./lib/helpers/*.rb"].each {|file| require file }
 Dir["./config/routes.rb"].each {|file| require file }
 Dir["./config/initializers/*.rb"].each {|file| require file }
-Dir["./handlers/*.rb"].each {|file| require file }
+Dir["./app/handlers/*.rb"].each {|file| require file }
+Dir["./app/models/*.rb"].each {|file| require file }
 
 
 # Only change this line if you know what you are doing. This could seriously

@@ -1,0 +1,17 @@
+#!/bin/bash
+APP_NAME="hw-propack"
+
+if [[ -n $1 ]]; then
+  REGISTRY_NAMESPACE=$1
+else
+  REGISTRY_NAMESPACE=development
+fi
+if [[ -n $2 ]]; then
+  IMAGE_NAME="$APP_NAME:$2"
+else
+  IMAGE_NAME=$APP_NAME
+fi
+
+echo "Pushing registry.fullscript.io:5000/$REGISTRY_NAMESPACE/$IMAGE_NAME"
+
+docker push registry.fullscript.io:5000/$REGISTRY_NAMESPACE/$IMAGE_NAME

@@ -26,5 +26,9 @@ Purple='\e[0;35m'       # Purple
 Cyan='\e[0;36m'         # Cyan
 White='\e[0;37m'        # White
 
+function parse_git_branch () {
+  git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+}
+
 PS1="\e[0;32m\u\e[0;33m@\h:\e[0;49;34m[\w]\[\033[0;31m\]\033[0m$ "
 PS2=$PS1

@@ -1,0 +1,9 @@
+#!/bin/bash
+if [[ -n $1 ]]; then
+  ENV=$1
+else
+  ENV=production
+fi
+bundle check || bundle install
+RAILS_ENV=$ENV bundle exec rake assets:clobber
+RAILS_ENV=$ENV bundle exec rake assets:precompile

@@ -1,0 +1,23 @@
+#!/bin/bash
+APP_NAME=hw-propack
+if [[ -n $1 ]]; then
+  REGISTRY_NAMESPACE=$1
+else
+  REGISTRY_NAMESPACE=development
+fi
+
+if [[ -n $2 ]]; then
+  IMAGE_NAME="$APP_NAME:$2"
+else
+  IMAGE_NAME=$APP_NAME
+fi
+
+if [[ $REGISTRY_NAMESPACE == "development" ]]; then
+  COMMAND="docker build -f Dockerfile.development"
+else
+  COMMAND="docker build"
+fi
+
+echo "Building registry.fullscript.io:5000/$REGISTRY_NAMESPACE/$IMAGE_NAME"
+
+$COMMAND -t registry.fullscript.io:5000/$REGISTRY_NAMESPACE/$IMAGE_NAME .

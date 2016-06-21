@@ -7,18 +7,13 @@ command = ARGV[0]
 
 gem_path = File.expand_path File.dirname(__FILE__)
 
-if command && ARGV[1]
-  case command
-  when 'handler' then new_handler
-  when 'new' then new_app
-  else
-    usage
-  end
-else
-  usage
+
+def usage
+  puts "Usage: cthulhu new app_name"
+  puts "Usage: cthulhu handler handler_name"
 end
 
-def new_handler
+def new_handler(gem_path)
   dir = "./handlers"
   if File.directory?(dir)
     handler_file_path = dir + "/" + ARGV[1].downcase + "_handler.rb"
@@ -43,7 +38,7 @@ def new_handler
   end
 end
 
-def new_app
+def new_app(gem_path)
   app_name = ARGV[1]
   queue_uuid = SecureRandom.uuid
   Dir.mkdir "./#{app_name}" unless File.exists?(app_name)
@@ -62,8 +57,8 @@ def new_app
     File.open(file_name, "w") {|file| file.puts new_contents }
   end
 
-  base_path = "./#{app_name}/app"
-  dir_names = ["logs", "tmp", "lib", "handlers", "models", "specs", "config/initializers"]
+  base_path = "./#{app_name}"
+  dir_names = ["logs", "tmp", "lib", "app", "app/handlers", "app/models", "spec", "config/initializers"]
 
   dir_names.each do |dir_name|
     path = base_path + "/#{dir_name}"
@@ -74,12 +69,15 @@ def new_app
   File.open("./#{app_name}/.gitignore", "w") {|f| f.write(".DS_Store\napp/logs/*.log\napp/tmp/*.pid") }
 
   puts "Done. No life matter."
-  puts "\nIMPORTANT: if you use docker-machine-nfs, run the following command now:"
-  puts "\ndocker-machine-nfs default -f -s=$PWD/#{app_name} -n='-alldirs -maproot=0'\n"
 end
 
-
-def usage
-  puts "Usage: cthulhu new app_name"
-  puts "Usage: cthulhu handler handler_name"
+if command && ARGV[1]
+  case command
+  when 'handler' then new_handler(gem_path)
+  when 'new' then new_app(gem_path)
+  else
+    usage
+  end
+else
+  usage
 end

@@ -1,0 +1,156 @@
+#!/usr/bin/env ruby
+
+require 'rancher/api'
+require 'json'
+require 'net/http'
+
+def logger(text, use_print=false)
+  if use_print
+    printf "#{text}"
+  else
+    puts "#{Time.now} #{text}"
+  end
+end
+
+####### CONFIG ###########
+# deploy timeout
+TIMEOUT = 10.minutes
+APP_NAME = 'hw-propack'
+
+# JSON files
+logger "Reading JSON files"
+service_1_config = JSON.parse( File.read("docker/files/#{APP_NAME}.json") )
+service_2_config = JSON.parse( File.read("docker/files/#{APP_NAME}-cron.json") )
+
+
+logger "Starting deploy with timeout #{TIMEOUT} seconds"
+
+Rancher::Api.configure do |config|
+  config.url = 'https://rancher.fullscript.io/v1'
+  config.access_key = ENV['CATTLE_ACCESS_KEY']
+  config.secret_key = ENV['CATTLE_SECRET_KEY']
+end
+
+def upgrade(project_id:, service:, params:)
+  logger "[#{service.name}] Upgrading service"
+  Rancher::Api::Service.post("/v1/projects/#{project_id}/services/#{service.id}/?action=upgrade", params)
+  logger "[#{service.name}] Request to upgrade service was sent"
+end
+
+def rollback(project_id:, services:)
+  services.each do |service|
+    logger "[#{service.name}] Rolling back service"
+    Rancher::Api::Service.post("/v1/projects/#{project_id}/services/#{service.id}/?action=rollback")
+    logger "[#{service.name}] Request to rollback service was sent"
+  end
+end
+
+def finish_upgrade(project_id:, services:)
+  services.each do |service|
+    logger "[#{service.name}] Finishing upgrade"
+    Rancher::Api::Service.post("/v1/projects/#{project_id}/services/#{service.id}/?action=finishupgrade")
+    logger "[#{service.name}] Finish upgrade request sent"
+  end
+end
+
+def check_initial_state services
+  services.each do |s|
+    if ["upgrading", "upgraded", "canceling-upgrade", "canceled-upgrade", "canceled-rollback"].include? s.state
+      logger "ERROR: The deploy failed because one or more instances were not on the required state."
+      exit(false)
+    end
+  end
+end
+
+def check(service:, params:)
+  logger "[#{service.name}] Checking service"
+  labels = params["toServiceStrategy"]["launchConfig"]["labels"]
+  # the upgrade timeout
+  timeout = TIMEOUT
+  logger "[#{service.name}] The upgrade will fail if it takes longer than #{timeout} seconds to finish"
+  start_time = Time.now
+  # first we wait until the service status change to 'upgraded'
+  logger "[#{service.name}] Waiting for the status change from: upgrading, to: upgraded"
+  upgraded = loop do
+    logger ". ", true
+    service_state = fetch_service(name: service.name).state
+    break true if service_state == "upgraded"
+    if (Time.now - start_time) > timeout
+      logger "[#{service.name}] Timeout waiting for service status change"
+      break false
+    end
+    sleep 5
+  end
+  logger "\n", true
+  if upgraded
+    logger "[#{service.name}] State change detected: upgrading > upgraded"
+    if labels["app.check.kind"] == "web"
+      logger "[#{service.name}] Web check is required for #{service.name}"
+      # perform a web check
+      expect_string = labels["app.check.expect_string"]
+      logger "[#{service.name}] Expected string: '#{expect_string}'"
+      url = URI(labels["app.check.url.#{ENV['ENV']}"])
+      logger "[#{service.name}] Sending the request to #{labels["app.check.url.#{ENV['ENV']}"]}"
+
+      response = 6.times do
+        r = Net::HTTP.get_response(url)
+        break r if ( r.is_a?(Net::HTTPSuccess) && r.body.match( /#{expect_string}/ ) )
+        logger "[#{service.name}] Retrying in 10 seconds..."
+        sleep 10
+      end
+
+      unless response.is_a?(Net::HTTPSuccess) && response.body.match( /#{expect_string}/ )
+        # rollback
+        logger "[#{service.name}] Could not find the string #{expect_string} on the response body"
+        return false
+      end
+      logger "[#{service.name}] String #{expect_string} found in the response body"
+    end
+      # upgrade OK
+      return true
+  else
+    # rollback
+    return false
+  end
+end
+
+def fetch_service(name:)
+  # logger "Refreshing environment info: #{ENV['ENV']}"
+  project = Rancher::Api::Project.where(name: ENV['ENV']).fetch.first
+  project.services.where(name: name).first
+end
+
+project = Rancher::Api::Project.where(name: ENV['ENV']).fetch.first
+service_1 = fetch_service(name: APP_NAME)
+service_2 = fetch_service(name: "#{APP_NAME}-cron")
+
+services = [service_1, service_2]
+# check initial state
+check_initial_state services
+
+service_hash = {
+  service_1 => service_1_config,
+  service_2 => service_2_config
+}
+
+service_hash.each do |service, params|
+  upgrade project_id: project.id, service: service, params: params
+end
+
+success = nil
+service_hash.each do |service, params|
+  if check service: service, params: params
+    success = true
+  else
+    success = false
+    break
+  end
+end
+if success
+  finish_upgrade project_id: project.id, services: services
+  logger "Deploy finished"
+else
+  logger "Deploy failed. Requesting rollback"
+  rollback project_id: project.id, services: services
+end
+exit(success)

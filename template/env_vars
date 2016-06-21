@@ -1,4 +1,0 @@
-RABBIT_USER=user
-RABBIT_PW=pass
-RABBIT_HOST=192.168.99.100
-APP_ENV=development

@@ -15,7 +15,7 @@ development() {
   cd /$APP_NAME
   bundle install
   while true; do
-    ruby application.rb
+    ruby config/application.rb
     echo -e "\nReloading Cthulhu..."
   done
 
