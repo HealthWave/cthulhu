@@ -73,7 +73,7 @@ module Cthulhu
       unless  (
                 properties.message_id.is_a?(String) &&
                 headers["subject"].is_a?(String) &&
-                headers["action"].is_a?(String) &&
+                headers["event"].is_a?(String) &&
                 message.is_a?(Hash) &&
                 properties.timestamp.is_a?(Time) &&
                 headers["from"].is_a?(String)
@@ -84,7 +84,7 @@ module Cthulhu
         logger.error "Invalid message: #{properties.inspect} - #{message}"
         return false
       end
-      if headers["subject"].blank? || headers["action"].blank? || headers["from"].blank? || message.empty?
+      if headers["subject"].blank? || headers["event"].blank? || headers["from"].blank? || message.empty?
         return false
       else
         return true
@@ -95,7 +95,7 @@ module Cthulhu
       headers = properties.headers
       class_name = Cthulhu.routes[headers["subject"]]
       return false unless Object.const_defined?(class_name)
-      method_name = headers["action"].downcase
+      method_name = headers["event"].downcase
       klass = Object.const_get class_name
       return false unless klass.method_defined?(method_name)
       return class_name
@@ -104,7 +104,7 @@ module Cthulhu
     def self.call_handler_for(properties, message)
       headers = properties.headers
       class_name = Cthulhu.routes[headers["subject"]]
-      method_name = headers["action"].downcase
+      method_name = headers["event"].downcase
       logger.info "Routing subject '#{headers["subject"]}' to #{class_name}##{method_name}"
       klass = Object.const_get class_name
       klass.new(properties, message).handle_action(method_name)

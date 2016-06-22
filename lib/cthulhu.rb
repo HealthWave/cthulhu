@@ -15,9 +15,9 @@ module Cthulhu
     end
     @@routes
   end
-  def self.route(subject:, to: )
+  def self.route(subject:, event: )
     @@routes ||= {}
-    @@routes[subject] = to
+    @@routes[subject] = event
   end
 
   def self.channel
