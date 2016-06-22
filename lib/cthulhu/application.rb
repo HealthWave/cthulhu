@@ -24,7 +24,7 @@ module Cthulhu
     end
     def self.start(block: true, exchange_type: 'broadcast')
       puts "Starting #{Cthulhu::Application.name} on queue #{Cthulhu::Application.queue_name}."
-      puts "Cthulhu loaded. Press CTRL+C to reload it."
+      puts "Cthulhu loaded. Press CTRL+C to QUIT."
       queue_name = Cthulhu::Application.queue_name
       queue = Cthulhu.channel.queue(queue_name, auto_delete: false, durable: true)
       exchange = Cthulhu.channel.fanout(exchange_type, durable: true)
