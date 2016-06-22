@@ -10,7 +10,7 @@ Dir[File.dirname(__FILE__) + '/support/*.rb'].each {|file| require file }
 RSpec.configure do |config|
   ENV['RABBIT_USER'] = 'user'
   ENV['RABBIT_PW'] = 'pass'
-  ENV['APP_ENV'] = 'test'
+  ENV['CTHULHU_ENV'] = 'test'
   ENV['RABBIT_HOST'] = 'rabbitmq.dummy'
 
 end

@@ -1,8 +1,11 @@
 require 'rubygems'
 require 'bundler/setup'
 require 'logger'
+
+ENV['CTHULHU_ENV'] ||= Object.const_defined(Rails) ? Rails.env
+
 Bundler.require(:default) # requires all gems outside groups
-Bundler.require(ENV['APP_ENV'])
+Bundler.require(ENV['CTHULHU_ENV'])
 
 Dir["./lib/cthulhu.rb"].each {|file| require file }
 Dir["./lib/helpers/*.rb"].each {|file| require file }
@@ -10,7 +13,6 @@ Dir["./config/routes.rb"].each {|file| require file }
 Dir["./config/initializers/*.rb"].each {|file| require file }
 Dir["./app/handlers/*.rb"].each {|file| require file }
 Dir["./app/models/*.rb"].each {|file| require file }
-
 
 # Only change this line if you know what you are doing. This could seriously
 # break things.

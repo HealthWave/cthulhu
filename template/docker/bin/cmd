@@ -10,7 +10,7 @@ APP_ROOT=/$APP_NAME
 
 cd $APP_ROOT
 
-echo "STARTING $APP_NAME ON ENVIRONMENT: $APP_ENV"
+echo "STARTING $APP_NAME ON ENVIRONMENT: $CTHULHU_ENV"
 
 if [ ! -d "$APP_ROOT/tmp/pids" ]; then
   mkdir -pv $APP_ROOT/tmp/pids
@@ -36,4 +36,4 @@ function test {
 }
 
 # calls the right function
-`echo $APP_ENV`
+`echo $CTHULHU_ENV`
