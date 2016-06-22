@@ -2,7 +2,7 @@ require 'rubygems'
 require 'bundler/setup'
 require 'logger'
 
-ENV['CTHULHU_ENV'] = Object.const_defined(Rails) ? Rails.env : ENV['CTHULHU_ENV']
+ENV['CTHULHU_ENV'] = Object.const_defined?("Rails") ? Rails.env : ENV['CTHULHU_ENV']
 
 Bundler.require(:default) # requires all gems outside groups
 Bundler.require(ENV['CTHULHU_ENV'])

@@ -24,7 +24,7 @@ module Cthulhu
     end
     def self.start(block: true, exchange_type: 'broadcast')
       raise "CTHULHU_ENV constant is not set." unless ENV['CTHULHU_ENV']
-      puts "Starting #{Cthulhu::Application.name} on queue #{Cthulhu::Application.queue_name}, enviroment #{Cthulhu.env}."
+      puts "Starting #{Cthulhu::Application.name} on queue #{Cthulhu::Application.queue_name}, enviroment #{ENV['CTHULHU_ENV']}."
       puts "Cthulhu loaded. Press CTRL+C to QUIT."
       queue_name = Cthulhu::Application.queue_name
       queue = Cthulhu.channel.queue(queue_name, auto_delete: false, durable: true)
