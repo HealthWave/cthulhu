@@ -15,7 +15,7 @@ end
 ####### CONFIG ###########
 # deploy timeout
 TIMEOUT = 10.minutes
-APP_NAME = 'hw-propack'
+APP_NAME = '__APP_NAME__'
 
 # JSON files
 logger "Reading JSON files"

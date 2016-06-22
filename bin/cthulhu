@@ -11,6 +11,7 @@ gem_path = File.expand_path File.dirname(__FILE__)
 def usage
   puts "Usage: cthulhu new app_name"
   puts "Usage: cthulhu handler handler_name"
+  puts "Usage: cthulhu start"
 end
 
 def new_handler(gem_path)
@@ -58,7 +59,7 @@ def new_app(gem_path)
   end
 
   base_path = "./#{app_name}"
-  dir_names = ["logs", "tmp", "lib", "app", "app/handlers", "app/models", "spec", "config/initializers"]
+  dir_names = ["bin", "logs", "tmp", "lib", "app", "app/handlers", "app/models", "spec", "config/initializers"]
 
   dir_names.each do |dir_name|
     path = base_path + "/#{dir_name}"
@@ -71,10 +72,15 @@ def new_app(gem_path)
   puts "Done. No life matter."
 end
 
+def start_app(gem_path)
+  `ruby config/application.rb`
+end
+
 if command && ARGV[1]
   case command
   when 'handler' then new_handler(gem_path)
   when 'new' then new_app(gem_path)
+  when 'start' then start_app(gem_path)
   else
     usage
   end

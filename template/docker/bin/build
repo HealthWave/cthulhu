@@ -1,5 +1,5 @@
 #!/bin/bash
-APP_NAME=hw-propack
+APP_NAME=__APP_NAME__
 if [[ -n $1 ]]; then
   REGISTRY_NAMESPACE=$1
 else

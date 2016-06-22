@@ -4,19 +4,13 @@
 # DATABASE_URL="mysql2://deploy:deploy@mysql:3306/hw_admin"
 # RAILS_ENV=development
 # THIN_SERVERS_COUNT=14
-APP_NAME=hw-propack
+APP_NAME=__APP_NAME__
 APP_ROOT=/$APP_NAME
 
 
 cd $APP_ROOT
-if [[ -n $UTILITY ]]; then
-  echo "STARTING ON ENVIRONMENT: $APP_ENV"
-  if [[ -n $RESQUE ]]; then
-    echo "QUEUES: $QUEUES"
-  fi
-else
-  echo "STARTING WEB SERVER ON ENVIRONMENT: $APP_ENV"
-fi
+
+echo "STARTING $APP_NAME ON ENVIRONMENT: $APP_ENV"
 
 if [ ! -d "$APP_ROOT/tmp/pids" ]; then
   mkdir -pv $APP_ROOT/tmp/pids
@@ -24,22 +18,14 @@ fi
 rm $APP_ROOT/tmp/pids/*
 
 function production {
-  if [[ -n $UTILITY ]]; then
-    if [[ -n $RESQUE ]]; then
-      RAILS_ENV=$APP_ENV RACK_ENV=$APP_ENV APP_ROOT=$APP_ROOT PID=$APP_ROOT/tmp/pids/resque.pid bundle exec rake resque:work
-    elif [[ -n $CRON ]]; then
-      cron -fl -L 7
-    fi
-  else
-    puma
-  fi
+  bundle check || bundle install --without development test
+  while true; do
+    cthulhu start
+    echo -e "\nReloading Cthulhu..."
+  done
 }
 
 function development {
-  # Wait for MySQL to be up
-  echo "IF THIS IS THE FIRST TIME YOU RUN THIS, MYSQL MIGHT TAKE A LONG TIME TO LOAD THE DATABASE."
-  apt-get update
-  apt-get -y install mysql-client vim
   bundle check || bundle install --with development test
   while true; do bash; echo 'To detach the tty, use the escape sequence Ctrl+p + Ctrl+q';done
 }

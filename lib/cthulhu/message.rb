@@ -37,7 +37,7 @@ module Cthulhu
     def self.validate message
       raise "Message must have a subject" if message[:subject].blank?
       raise "Message must have an action" if message[:action].blank?
-      raise "Message must have a payload" if message[:payload].nil? || message[:payload].empty?
+      raise "Message must have a message (even if it is empty)" if message[:payload].empty?
       true
     end
   end
