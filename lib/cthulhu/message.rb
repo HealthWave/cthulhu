@@ -13,7 +13,7 @@ module Cthulhu
         headers: {
           from: Cthulhu::Application.name,
           subject: message[:subject],
-          action: message[:action]
+          event: message[:event]
         }
       }
       exchange.publish(payload, options)
@@ -36,7 +36,7 @@ module Cthulhu
 
     def self.validate message
       raise "Message must have a subject" if message[:subject].blank?
-      raise "Message must have an action" if message[:action].blank?
+      raise "Message must have an event" if message[:event].blank?
       raise "Message must have a payload" if message[:payload].nil? || message[:payload].empty?
       true
     end
