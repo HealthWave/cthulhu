@@ -19,10 +19,7 @@ rm $APP_ROOT/tmp/pids/*
 
 function production {
   bundle check || bundle install --without development test
-  while true; do
-    cthulhu start
-    echo -e "\nReloading Cthulhu..."
-  done
+  cthulhu s
 }
 
 function development {

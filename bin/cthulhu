@@ -73,7 +73,7 @@ def new_app(gem_path)
 end
 
 def start_app(gem_path)
-  exec(ruby config/application.rb)
+  exec('ruby config/application.rb')
 end
 
 if command && ARGV[1]
