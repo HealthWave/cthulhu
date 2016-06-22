@@ -21,7 +21,11 @@ Cthulhu::Application.queue_name = Cthulhu::Application.name + '.__QUEUE_UUID__'
 
 # Cthulhu will write to logs/app_name.log by default.
 # If you want a custom logger, change it here:
-Cthulhu::Application.logger = Logger.new("logs/#{Cthulhu::Application.name}.log")
-
+case ENV['CTHULHU_ENV']
+when "development"
+  Cthulhu::Application.logger = Logger.new(STDOUT)
+else
+  Cthulhu::Application.logger = Logger.new("logs/#{Cthulhu::Application.name}.log")
+end
 
 Cthulhu::Application.start
