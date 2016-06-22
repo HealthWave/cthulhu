@@ -80,10 +80,13 @@ if command && ARGV[1]
   case command
   when 'handler' then new_handler(gem_path)
   when 'new' then new_app(gem_path)
-  when 'start' then start_app(gem_path)
   else
     usage
   end
 else
-  usage
+  case command
+  when 'start' then start_app(gem_path)
+  else
+    usage
+  end
 end
