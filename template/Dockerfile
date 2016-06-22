@@ -6,5 +6,5 @@ ENV PATH $APP_HOME:$PATH
 RUN mkdir -p $APP_HOME/
 WORKDIR $APP_HOME/
 COPY . $APP_HOME/
-COPY bashrc /root/.bashrc
+COPY docker/files/bashrc /root/.bashrc
 CMD ["/__APP_NAME__/docker/bin/cmd"]

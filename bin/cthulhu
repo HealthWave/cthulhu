@@ -73,7 +73,7 @@ def new_app(gem_path)
 end
 
 def start_app(gem_path)
-  `ruby config/application.rb`
+  exec(ruby config/application.rb)
 end
 
 if command && ARGV[1]
@@ -85,7 +85,7 @@ if command && ARGV[1]
   end
 else
   case command
-  when 'start' then start_app(gem_path)
+  when 'start', 's' then start_app(gem_path)
   else
     usage
   end
