@@ -31,7 +31,7 @@ describe Cthulhu do
 
   it 'delete routes' do
     subject.delete_routes
-    expect(subject.routes).to be_nil
+    expect(subject.routes.empty?).to eq(true)
   end
 
 end

@@ -95,7 +95,7 @@ module Cthulhu
       method_name = properties.headers["action"].downcase
       class_name = Cthulhu.routes[properties.headers["subject"]]
 
-      if !( Cthulhu.routes || class_name || Object.const_defined?(class_name) )
+      if !class_name || !Object.const_defined?(class_name)
         return false
       end
 

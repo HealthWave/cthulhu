@@ -3,11 +3,11 @@ require 'json'
 require 'logger'
 
 module Cthulhu
-  @@routes = nil
+  @@routes = {}
   @@channel = nil
 
   def self.delete_routes
-    @@routes = nil
+    @@routes = {}
   end
   def self.routes &block
     if block_given?
@@ -16,7 +16,6 @@ module Cthulhu
     @@routes
   end
   def self.route(subject:, to: )
-    @@routes ||= {}
     @@routes[subject] = to
   end
 
