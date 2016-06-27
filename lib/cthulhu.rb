@@ -34,7 +34,6 @@ module Cthulhu
       Cthulhu::Pool.start
     end
     CTHULHU_QUEUE << message
-    Cthulhu::Application.logger.info "Message queued: #{message}"
   end
 end
 
