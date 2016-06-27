@@ -1,7 +1,7 @@
 module Cthulhu
   class Pool
     @@thread = nil
-    def thread
+    def self.thread
       @@thread
     end
     def self.start
