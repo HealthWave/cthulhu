@@ -11,6 +11,7 @@ module Cthulhu
   def self.delete_routes
     @@routes = nil
   end
+
   def self.routes &block
     if block_given?
       instance_eval &block
@@ -47,3 +48,9 @@ require 'cthulhu/subscriber'
 require 'cthulhu/handler'
 require 'cthulhu/message'
 require 'cthulhu/pool'
+
+# RAILS SETUP
+if defined?("Rails")
+  Cthulhu::Application.name = Rails.application.class.parent_name
+  Cthulhu::Application.queue_name = Cthulhu::Application.name
+end
