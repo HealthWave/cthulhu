@@ -2,6 +2,8 @@ require 'bunny'
 require 'json'
 require 'logger'
 
+CTHULHU_QUEUE=Queue.new
+
 module Cthulhu
   @@routes = nil
   @@channel = nil
@@ -26,6 +28,14 @@ module Cthulhu
     conn.start
     @@channel = conn.create_channel
   end
+
+  def self.publish(message)
+    if Cthulhu::Pool.thread.nil? || !Cthulhu::Pool.thread.alive?
+      Cthulhu::Pool.start
+    end
+    CTHULHU_QUEUE << message
+    Cthulhu::Application.logger.info "Message queued: #{message}"
+  end
 end
 
 
@@ -37,3 +47,4 @@ require 'cthulhu/application'
 require 'cthulhu/subscriber'
 require 'cthulhu/handler'
 require 'cthulhu/message'
+require 'cthulhu/pool'
