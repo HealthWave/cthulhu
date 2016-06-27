@@ -50,7 +50,7 @@ require 'cthulhu/message'
 require 'cthulhu/pool'
 
 # RAILS SETUP
-if defined?("Rails")
+if Object.const_defined?("Rails")
   Cthulhu::Application.name = Rails.application.class.parent_name
   Cthulhu::Application.queue_name = Cthulhu::Application.name
 end
