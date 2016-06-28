@@ -84,7 +84,7 @@ def start_app(gem_path)
   end
 end
 def start_console(gem_path)
-  exec('CONSOLE=1 $(which bundle) exec irb -r ./config/application.rb')
+  exec('source /etc/profile && CONSOLE=1 $(which bundle) exec irb -r ./config/application.rb')
 end
 
 if command && ARGV[1]
