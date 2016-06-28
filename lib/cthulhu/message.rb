@@ -4,6 +4,10 @@ module Cthulhu
   class Message
     def self.broadcast message
       validate(message)
+      if Cthulhu::Application.dry_run
+        puts "Dry run mode enabled. Messages will not be sent."
+        return
+      end
       exchange = Cthulhu.channel.fanout("broadcast", durable: true)
 
       payload = message[:payload].to_json

@@ -3,6 +3,7 @@ module Cthulhu
     @@name = nil
     @@logger = nil
     @@queue_name = nil
+    @@dry_run = false
     def self.logger=(logger)
       raise "Invalid logger" unless logger.instance_of? Logger
       @@logger = logger
@@ -21,6 +22,12 @@ module Cthulhu
     end
     def self.queue_name=(queue_name)
       @@queue_name = queue_name
+    end
+    def self.dry_run=(state)
+      @@dry_run = state
+    end
+    def self.dry_run
+      @@dry_run
     end
     def self.start(block: true, exchange_type: 'broadcast')
       raise "CTHULHU_ENV constant is not set." unless ENV['CTHULHU_ENV']
