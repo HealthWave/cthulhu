@@ -14,6 +14,9 @@ Dir["./config/initializers/*.rb"].each {|file| require file }
 Dir["./app/handlers/*.rb"].each {|file| require file }
 Dir["./app/models/*.rb"].each {|file| require file }
 
+# Apps we are allowed to send RPC calls to
+RPC_APPS = []
+
 # Only change this line if you know what you are doing. This could seriously
 # break things.
 Cthulhu::Application.name = '__APP_NAME__'

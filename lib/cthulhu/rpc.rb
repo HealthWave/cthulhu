@@ -3,9 +3,8 @@ require 'json'
 require 'timeout'
 
 module Cthulhu
-  APPS_ARRAY = ["HwAdmin"]
   def self.const_missing(name)
-    if APPS_ARRAY.include? name.to_s
+    if RPC_APPS.include? name.to_s
       name = const_set name.to_s, Class.new(RemoteApp)
     else
       super
