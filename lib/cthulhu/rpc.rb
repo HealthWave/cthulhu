@@ -49,7 +49,6 @@ module C
         end
       rescue Timeout::Error
         puts "Timed out waiting for response"
-        consumer.cancel
       end
     end
   end
