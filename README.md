@@ -6,42 +6,43 @@ Cthulhu allows you to create a message network between apps using RabbitMQ as me
 git clone https://github.com/HealthWave/cthulhu.git
 cd cthulhu && gem build cthulhu.gemspec && gem install cthulhu-*.gem && rm cthulhu-*.gem && cd ..
 cthulhu new my-app
-cd my-app/app
+cd my-app
 cthulhu handler example
 
 ```
 
-Edit my-app/app/config/routes.rb and add:
+Edit my-app/config/routes.rb and add:
 
 ```ruby
 route subject: 'example', to: 'ExampleHandler'
 ```
 
-Change `my-app/env_vars` to point to your RabbitMQ.
-
-
-If you are running docker, start the container by running:
-```bash
-my-app/boot
+The app requires 5 env vars:
+```
+CTHULHU_ENV=development
+RABBIT_HOST=rabbitmq
+RABBIT_PORT=5672
+RABBIT_USER=user
+RABBIT_PW=password
 ```
 
-If you are not using docker:
+To run the app:
 ```
-cd my-app/app
+cd my-app
 bundle install
-source ../env_vars bin/boot
+cthulhu server
 ```
 
 Watch the logs:
 ```
-tail -f app/logs/my-app.log
+tail -f logs/my-app.log
 ```
 
 ### Publishing a message
 ```ruby
 # make sure 'my_action' is a method inside ExampleHandler
 message = {subject: 'example', action: 'my_action', payload: {id: 1, text: 'lorem ipsum'}}
-Cthulhu::Message.broadcast(message)
+Cthulhu.publish(message)
 ```
 
 ### Receiving messages
@@ -62,24 +63,18 @@ end
 
 Adding this to your `Gemfile`
 ```ruby
-  gem 'cthulhu', '~>0.2.1', git: 'https://github.com/HealthWave/cthulhu.git'
+  gem 'cthulhu', '~>0.3.0', git: 'https://github.com/HealthWave/cthulhu.git'
 ```
-
-
+Optional initializer
 ```ruby
 # FILE: config/initializers/cthulhu.rb
-Cthulhu::Application.name = 'my-app'
-
-# generate an unique UUID for this
-Cthulhu::Application.queue_name = Cthulhu::Application.name + 'UNIQUE UUID'
-Cthulhu::Application.logger = Logger.new("#{Rails.root.join("log", Cthulhu::Application.name)}.log")
-
-# Uncomment the line below if you want the app to receive messages, then create a folder app/handlers and drop the handlers there.
-# Cthulhu::Application.start(block: false) # run process on a separate thread
-
-# publish messages the same way...
+Cthulhu::Application.logger = Rails.logger
 ```
 
+##RPC calls
 
-## TODO
-- Allow direct messaging
+Cthulhu can do unsafe RPC calls too. Just edit config/application.rb on your cthulhu app, or create an initializer for rails with:
+```ruby
+# The name of the apps must match the cthulhu app name, or Rails.application.class.parent_name
+RPC_APPS = ["MyMonolith1", "MyMonolith2"]
+```
