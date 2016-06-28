@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'cthulhu'
-  s.version     = '0.2.2'
+  s.version     = '0.3.0'
   s.date        = '2016-05-20'
   s.summary     = "No life matter"
   s.description = "No description. Get over it."

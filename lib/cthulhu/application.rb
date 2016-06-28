@@ -24,9 +24,28 @@ module Cthulhu
     end
     def self.start(block: true, exchange_type: 'broadcast')
       raise "CTHULHU_ENV constant is not set." unless ENV['CTHULHU_ENV']
+      return if ENV['CONSOLE'] == '1'
       puts "Starting #{Cthulhu::Application.name} on queue #{Cthulhu::Application.queue_name}, enviroment #{ENV['CTHULHU_ENV']}."
       puts "Cthulhu loaded. Press CTRL+C to QUIT."
-      queue_name = Cthulhu::Application.queue_name
+
+      ############################
+      ##### DIRECT QUEUE #########
+      ############################
+      x = Cthulhu.channel.direct("#{Cthulhu::Application.queue_name}.direct")
+      q = Cthulhu.channel.queue("", auto_delete: true, exclusive: true).bind(x, routing_key: "rpc")
+      q.subscribe do |delivery_info, properties, payload|
+        reply_tox = Cthulhu.channel.direct(properties.headers["reply_to"])
+        begin
+          message = eval(payload).to_json
+          reply_tox.publish(message, routing_key: "rpc")
+        rescue
+          reply_tox.publish("null", routing_key: "rpc")
+        end
+      end
+      ############################
+      ##### BROADCAST QUEUE ######
+      ############################
+      queue_name = "#{Cthulhu::Application.queue_name}.broadcast"
       queue = Cthulhu.channel.queue(queue_name, auto_delete: false, durable: true)
       exchange = Cthulhu.channel.fanout(exchange_type, durable: true)
       queue.bind(exchange)

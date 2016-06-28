@@ -48,9 +48,11 @@ require 'cthulhu/subscriber'
 require 'cthulhu/handler'
 require 'cthulhu/message'
 require 'cthulhu/pool'
+require 'cthulhu/rpc'
 
 # RAILS SETUP
 if Object.const_defined?("Rails")
+  ENV['CTHULHU_ENV'] = Rails.env
   Cthulhu::Application.name = Rails.application.class.parent_name
   Cthulhu::Application.queue_name = Cthulhu::Application.name
 end

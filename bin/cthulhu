@@ -53,7 +53,7 @@ def new_app(gem_path)
     file_name = file_name.gsub('"', '')
     text = File.read(file_name)
     new_contents = text.gsub(/__APP_NAME__/, app_name)
-    new_contents = new_contents.gsub(/__QUEUE_UUID__/, queue_uuid)
+    # new_contents = new_contents.gsub(/__QUEUE_UUID__/, queue_uuid)
     # To write changes to the file, use:
     File.open(file_name, "w") {|file| file.puts new_contents }
   end
@@ -73,7 +73,18 @@ def new_app(gem_path)
 end
 
 def start_app(gem_path)
-  exec('ruby config/application.rb')
+  if File.readlines("Gemfile").grep(/rails/).size > 0
+    require "#{Dir.pwd}/config/environment"
+    ENV['CTHULHU_ENV'] = Rails.env
+    Cthulhu::Application.name = Rails.application.class.parent_name
+    Cthulhu::Application.queue_name = Cthulhu::Application.name
+    Cthulhu::Application.start
+  else
+    exec('ruby config/application.rb')
+  end
+end
+def start_console(gem_path)
+  exec('CONSOLE=1 bundle exec irb -r ./config/application.rb')
 end
 
 if command && ARGV[1]
@@ -86,6 +97,7 @@ if command && ARGV[1]
 else
   case command
   when 'start', 's' then start_app(gem_path)
+  when 'console', 'c' then start_console(gem_path)
   else
     usage
   end

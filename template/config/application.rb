@@ -17,7 +17,7 @@ Dir["./app/models/*.rb"].each {|file| require file }
 # Only change this line if you know what you are doing. This could seriously
 # break things.
 Cthulhu::Application.name = '__APP_NAME__'
-Cthulhu::Application.queue_name = Cthulhu::Application.name + '.__QUEUE_UUID__'
+Cthulhu::Application.queue_name = Cthulhu::Application.name
 
 # Cthulhu will write to logs/app_name.log by default.
 # If you want a custom logger, change it here:
