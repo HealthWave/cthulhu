@@ -2,8 +2,8 @@ require 'ostruct'
 require 'json'
 require 'timeout'
 
-module C
-  APPS_ARRAY = ["HwAdmin", "A"]
+module Cthulhu
+  APPS_ARRAY = ["HwAdmin"]
   def self.const_missing(name)
     if APPS_ARRAY.include? name.to_s
       name = const_set name.to_s, Class.new(RemoteApp)

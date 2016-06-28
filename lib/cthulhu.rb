@@ -50,6 +50,8 @@ require 'cthulhu/message'
 require 'cthulhu/pool'
 require 'cthulhu/rpc'
 
+# Alias
+C = Cthulhu
 # RAILS SETUP
 if Object.const_defined?("Rails")
   ENV['CTHULHU_ENV'] = Rails.env
