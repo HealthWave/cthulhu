@@ -83,18 +83,19 @@ describe Cthulhu::Application do
     expect(subject.valid?(properties, message)).to be == false
   end
 
-  it '#handler_exists?' do
-
-    expect(subject.handler_exists?(properties, message)).to be == "TestHandler"
-
-    p = {
-      headers: {"subject" => "fail", "action" => "ack_test", "from" => "app"},
-      timestamp: Time.now,
-      message_id: '374892374823748923748'
-    }
-    properties = Bunny::MessageProperties.new(p)
-    expect(subject.handler_exists?(properties, message)).to be == false
-
+  describe '#handler_exists?' do
+    it 'returns true when the route exists' do
+      expect(subject.handler_exists?(properties, message)).to be == true
+    end
+    it 'returns false when the route is invalid' do
+      p = {
+        headers: {"subject" => "fail", "action" => "ack_test", "from" => "app"},
+        timestamp: Time.now,
+        message_id: '374892374823748923748'
+      }
+      properties = Bunny::MessageProperties.new(p)
+      expect(subject.handler_exists?(properties, message)).to be == false
+    end
   end
 
   it '#call_handler_for' do

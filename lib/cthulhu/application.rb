@@ -119,13 +119,15 @@ module Cthulhu
     end
 
     def self.handler_exists?(properties, message)
-      headers = properties.headers
-      class_name = Cthulhu.routes[headers["subject"]]
-      return false unless Object.const_defined?(class_name)
-      method_name = headers["action"].downcase
+      method_name = properties.headers["action"].downcase
+      class_name = Cthulhu.routes[properties.headers["subject"]]
+
+      if !class_name || !Object.const_defined?(class_name)
+        return false
+      end
+
       klass = Object.const_get class_name
-      return false unless klass.method_defined?(method_name)
-      return class_name
+      return klass.method_defined?(method_name)
     end
 
     def self.call_handler_for(properties, message)

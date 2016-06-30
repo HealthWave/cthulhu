@@ -5,11 +5,11 @@ require 'logger'
 CTHULHU_QUEUE=Queue.new
 
 module Cthulhu
-  @@routes = nil
+  @@routes = {}
   @@channel = nil
 
   def self.delete_routes
-    @@routes = nil
+    @@routes = {}
   end
 
   def self.routes &block
@@ -19,7 +19,6 @@ module Cthulhu
     @@routes
   end
   def self.route(subject:, to: )
-    @@routes ||= {}
     @@routes[subject] = to
   end
 
