@@ -70,6 +70,14 @@ Optional initializer
 # FILE: config/initializers/cthulhu.rb
 Cthulhu::Application.logger = Rails.logger
 ```
+Publish to the network when an active record model changes:
+```ruby
+class Model < ActiveRecord::Base
+  ...
+  cthulhu_notify
+  ...
+end
+```
 
 ##RPC calls
 
