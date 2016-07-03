@@ -2,6 +2,11 @@
 
 require 'fileutils'
 require 'securerandom'
+require 'envyable'
+if File.exist?('config/env.yml')
+  puts "Loading config/env.yml"
+  Envyable.load('config/env.yml')
+end
 
 command = ARGV[0]
 
