@@ -7,5 +7,6 @@ ENV PATH $APP_HOME:$PATH
 RUN mkdir -p $APP_HOME/
 WORKDIR $APP_HOME/
 COPY . $APP_HOME/
+RUN bundle install
 COPY docker/files/bashrc /root/.bashrc
 CMD ["/__APP_NAME__/docker/bin/cmd"]
