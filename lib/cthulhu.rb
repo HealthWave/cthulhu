@@ -57,6 +57,17 @@ if Object.const_defined?("Rails")
 
   require 'cthulhu/railtie'
   ENV['CTHULHU_ENV'] = Rails.env
-  Cthulhu::Application.name = Rails.application.class.parent_name
-  Cthulhu::Application.queue_name = Cthulhu::Application.name
+
+  Cthulhu::Application.name ||= Rails.application.class.parent_name
+  Cthulhu::Application.queue_name ||= Cthulhu::Application.name
+  
+  case Rails.env
+  when "development", "test"
+    lgr = Cthulhu::Application.logger = Logger.new(STDOUT)
+  else
+    lgr = Cthulhu::Application.logger = Logger.new("logs/#{Cthulhu::Application.name}.log")
+  end
+
+  Cthulhu::Application.logger ||= (Rails.logger || lgr)
+
 end

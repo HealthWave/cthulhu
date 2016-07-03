@@ -1,12 +1,14 @@
+require 'ostruct'
+
 module Cthulhu
   class Application
     @@name = nil
     @@logger = nil
     @@queue_name = nil
     @@dry_run = false
-    def self.logger=(logger)
-      raise "Invalid logger" unless logger.instance_of? Logger
-      @@logger = logger
+    def self.logger=(l)
+      raise "Invalid logger. Expected Logger but got #{logger.class.name}" unless l.instance_of?(Logger) || l.instance_of?(ActiveSupport::Logger)
+      @@logger = l
     end
     def self.logger
       @@logger
@@ -39,7 +41,7 @@ module Cthulhu
       ##### DIRECT QUEUE #########
       ############################
       x = Cthulhu.channel.direct("#{Cthulhu::Application.queue_name}.direct")
-      q = Cthulhu.channel.queue("", auto_delete: true, exclusive: true).bind(x, routing_key: "rpc")
+      q = Cthulhu.channel.queue("#{Cthulhu::Application.queue_name}.direct", auto_delete: true, exclusive: false).bind(x, routing_key: "rpc")
       q.subscribe do |delivery_info, properties, payload|
         reply_tox = Cthulhu.channel.direct(properties.headers["reply_to"])
         begin
@@ -74,7 +76,9 @@ module Cthulhu
     end
     def self.parse(delivery_info, properties, payload)
       headers = properties.headers
-      message = JSON.parse payload, symbolize_names: true
+      # ignore messages sent by myself
+      return "ignore!" if headers["from"] == Cthulhu::Application.name
+      message = JSON.parse payload, object_class: OpenStruct
       return 'ignore!' unless valid?(properties, message)
 
       # set the log format
@@ -101,7 +105,7 @@ module Cthulhu
                 properties.message_id.is_a?(String) &&
                 headers["subject"].is_a?(String) &&
                 headers["action"].is_a?(String) &&
-                message.is_a?(Hash) &&
+                message.is_a?(OpenStruct) &&
                 properties.timestamp.is_a?(Time) &&
                 headers["from"].is_a?(String)
               )
@@ -112,6 +116,7 @@ module Cthulhu
         return false
       end
       if headers["subject"].blank? || headers["action"].blank? || headers["from"].blank? || message.empty?
+        logger.error "Invalid message: #{headers.inspect} - #{message}"
         return false
       else
         return true
@@ -120,7 +125,9 @@ module Cthulhu
 
     def self.handler_exists?(properties, message)
       headers = properties.headers
+      return false if Cthulhu.routes.nil?
       class_name = Cthulhu.routes[headers["subject"]]
+      return false unless class_name
       return false unless Object.const_defined?(class_name)
       method_name = headers["action"].downcase
       klass = Object.const_get class_name

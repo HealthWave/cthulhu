@@ -29,7 +29,7 @@ case ENV['CTHULHU_ENV']
 when "development"
   Cthulhu::Application.logger = Logger.new(STDOUT)
 else
-  Cthulhu::Application.logger = Logger.new("logs/#{Cthulhu::Application.name}.log")
+  Cthulhu::Application.logger = Logger.new("log/#{Cthulhu::Application.name}.log")
 end
 
 Cthulhu::Application.start

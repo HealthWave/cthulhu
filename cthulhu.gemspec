@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.description = "No description. Get over it."
   s.authors     = ["Paulo Arruda", "Anthony Jhones"]
   s.email       = 'paulo@fullscript.com'
-  s.files       = Dir.glob("{bin,lib,template,template/logs,template/tmp}/**/*")
+  s.files       = Dir.glob("{bin,lib,template,template/log,template/tmp}/**/*")
   s.homepage    = 'http://rubygems.org/gems/cthulhu'
   s.license       = 'MIT'
   s.executables << 'cthulhu'
