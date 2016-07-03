@@ -3,9 +3,9 @@
 require 'fileutils'
 require 'securerandom'
 require 'envyable'
-if File.exist?('config/env.yml')
-  puts "Loading config/env.yml"
-  Envyable.load('config/env.yml')
+if File.exist?("#{Dir.pwd}/config/env.yml")
+  puts "Loading #{Dir.pwd}/config/env.yml"
+  Envyable.load("#{Dir.pwd}/config/env.yml")
 end
 
 command = ARGV[0]
