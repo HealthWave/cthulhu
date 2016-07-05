@@ -35,7 +35,7 @@ cthulhu server
 
 Watch the logs:
 ```
-tail -f logs/my-app.log
+tail -f log/my-app.log
 ```
 
 ### Publishing a message

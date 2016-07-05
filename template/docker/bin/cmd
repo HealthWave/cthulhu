@@ -19,7 +19,7 @@ rm $APP_ROOT/tmp/pids/*
 
 function production {
   bundle check || bundle install --without development test
-  bundle exec cthulhu s
+  cthulhu s
 }
 
 function development {

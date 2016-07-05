@@ -23,7 +23,7 @@ Cthulhu::Application.name = '__APP_NAME__'
 Cthulhu::Application.queue_name = Cthulhu::Application.name
 Cthulhu::Application.dry_run = false
 
-# Cthulhu will write to logs/app_name.log by default.
+# Cthulhu will write to log/app_name.log by default.
 # If you want a custom logger, change it here:
 case ENV['CTHULHU_ENV']
 when "development"
