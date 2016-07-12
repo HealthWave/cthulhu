@@ -58,7 +58,7 @@ module Cthulhu
       queue = Cthulhu.channel.queue(queue_name, auto_delete: false, durable: true)
       exchange = Cthulhu.channel.fanout(exchange_type, durable: true)
       queue.bind(exchange)
-      queue.subscribe(consumer_tag: Cthulhu::Application.name, block: block, manual_ack: true) do |delivery_info, properties, payload|
+      queue.subscribe(block: block, manual_ack: true) do |delivery_info, properties, payload|
         case parse(delivery_info, properties, payload)
         when "ack!"
           # acknowledge the message and remove from queue
