@@ -59,11 +59,13 @@ module Cthulhu
       exchange = Cthulhu.channel.fanout(exchange_type, durable: true)
       queue.bind(exchange)
       queue.subscribe(block: block, manual_ack: true) do |delivery_info, properties, payload|
+
         case parse(delivery_info, properties, payload)
         when "ack!"
           # acknowledge the message and remove from queue
           Cthulhu.channel.ack(delivery_info.delivery_tag, false)
         when "ignore!"
+          logger.info Cthulhu.routes
           # reject the message but dont add it back to the queue
           Cthulhu.channel.reject(delivery_info.delivery_tag)
         when "requeue!"
@@ -77,7 +79,7 @@ module Cthulhu
     def self.parse(delivery_info, properties, payload)
       headers = properties.headers
       # ignore messages sent by myself
-      return "ignore!" if headers["from"] == Cthulhu::Application.name
+      # return "ignore!" if headers["from"] == Cthulhu::Application.name
       message = JSON.parse payload, object_class: OpenStruct
       return 'ignore!' unless valid?(properties, message)
 
