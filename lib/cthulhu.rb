@@ -50,5 +50,7 @@ require 'cthulhu/message'
 require 'cthulhu/pool'
 require 'cthulhu/rpc'
 require 'cthulhu/notifier'
+# Railtie
+require 'cthulhu/railtie' if Object.const_defined?("Rails")
 # Alias
 C = Cthulhu
