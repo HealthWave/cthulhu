@@ -79,8 +79,10 @@ end
 
 def start_app(gem_path)
   if File.readlines("Gemfile").grep(/rails/).size > 0
+    puts "Rails detected. Loading environment."
     require "#{Dir.pwd}/config/environment"
     ENV['CTHULHU_ENV'] = Rails.env
+    puts "CTHULHU_ENV = #{Rails.env}"
     Cthulhu::Application.name = Rails.application.class.parent_name
     Cthulhu::Application.queue_name = Cthulhu::Application.name
     Cthulhu::Application.start
