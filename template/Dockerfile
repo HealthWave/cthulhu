@@ -6,7 +6,8 @@ ENV APP_HOME /__APP_NAME__
 ENV PATH $APP_HOME:$PATH
 RUN mkdir -p $APP_HOME/
 WORKDIR $APP_HOME/
-COPY . $APP_HOME/
+COPY Gemfile* $APP_HOME/
 RUN bundle install
+COPY . $APP_HOME/
 COPY docker/files/bashrc /root/.bashrc
 CMD ["/__APP_NAME__/docker/bin/cmd"]
