@@ -35,7 +35,7 @@ module Cthulhu
       raise "CTHULHU_ENV constant is not set." unless ENV['CTHULHU_ENV']
       return if ENV['CONSOLE'] == '1'
       puts "Starting #{Cthulhu::Application.name} on queue #{Cthulhu::Application.queue_name}, enviroment #{ENV['CTHULHU_ENV']}."
-      puts "Cthulhu loaded. Press CTRL+C to QUIT."
+      puts "Cthulhu #{Gem.loaded_specs["cthulhu"].version} loaded. Press CTRL+C to QUIT."
 
       ############################
       ##### DIRECT QUEUE #########
@@ -49,6 +49,20 @@ module Cthulhu
           reply_tox.publish(message, routing_key: "rpc")
         rescue
           reply_tox.publish("null", routing_key: "rpc")
+        end
+      end
+      ############################
+      ##### STATUS QUEUE ######
+      ############################
+      $peers = {}
+      status_queue_name = "#{Cthulhu::Application.queue_name}.status"
+      status_queue = Cthulhu.channel.queue(status_queue_name, auto_delete: false, durable: true)
+      status_exchange = Cthulhu.channel.fanout('status', durable: true)
+      status_queue.bind(status_exchange)
+      status_queue.subscribe(block: false, manual_ack: false) do |delivery_info, properties, payload|
+        message = JSON.parse(payload)
+        if properties["headers"]
+          $peers[properties["headers"]["from"]] = message
         end
       end
       ############################
@@ -74,6 +88,21 @@ module Cthulhu
         else
           logger.error "Handler actions must return ack!, ignore! or requeue!"
         end
+      end
+      ####### publish I am here
+      options = {
+        message_id: SecureRandom.uuid,
+        timestamp: Time.now.to_i,
+        headers: {
+          from: Cthulhu::Application.name
+        }
+      }
+      status_exchange.publish((Cthulhu.routes || {}).to_json, options)
+      # Start timer
+      timer = Thread.new do
+        sleep 60
+        puts "publishing routes #{Cthulhu.routes}"
+        status_exchange.publish(Cthulhu.routes.to_json, options)
       end
     end
     def self.parse(delivery_info, properties, payload)
