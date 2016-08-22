@@ -101,8 +101,10 @@ module Cthulhu
       # Start timer
       timer = Thread.new do
         sleep 60
-        puts "publishing routes #{Cthulhu.routes}"
-        status_exchange.publish(Cthulhu.routes.to_json, options)
+        if Cthulhu.routes
+          logger.info "Publishing routes #{Cthulhu.routes}"
+          status_exchange.publish(Cthulhu.routes.to_json, options)
+        end
       end
     end
     def self.parse(delivery_info, properties, payload)
