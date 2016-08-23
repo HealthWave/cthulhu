@@ -122,7 +122,7 @@ module Cthulhu
       logger.info "Got message - headers: #{headers} - payload: #{message}"
       logger.info "Message is valid"
 
-      handler = handler_exists?(properties, message)
+      handler = handler_exists?(headers, message)
       unless handler
         logger.error "No route matches subject '#{headers["subject"]}'"
         return "ignore!"
@@ -156,16 +156,17 @@ module Cthulhu
       end
     end
 
-    def self.handler_exists?(properties, message)
-      headers = properties.headers
-      return false if Cthulhu.routes.nil?
-      class_name = Cthulhu.routes[headers["subject"]]
-      return false unless class_name
-      return false unless Object.const_defined?(class_name)
-      method_name = headers["action"].downcase
+    def self.handler_exists?(headers, message)
+      class_name = Cthulhu.routes[ headers["subject"] ]
+      if Cthulhu.routes.nil? || class_name.nil?
+        return false
+      end
       klass = Object.const_get class_name
-      return false unless klass.method_defined?(method_name)
+
+      return false unless klass.method_defined?( headers["action"].downcase )
       return class_name
+    rescue NameError => e
+      return false
     end
 
     def self.call_handler_for(properties, message)
