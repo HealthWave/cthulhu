@@ -17,7 +17,8 @@ module Cthulhu
         headers: {
           from: Cthulhu::Application.name,
           subject: message[:subject],
-          action: message[:action]
+          action: message[:action],
+          options: message[:options]
         }
       }
       exchange.publish(payload, options)
