@@ -7,7 +7,7 @@ module Cthulhu
     module ClassMethods
       ACTION_MAP = { destroy: "after_destory", create: 'after_save', update: 'after_save' }
 
-      def cthulhu_notify(options)
+      def cthulhu_notify(options={})
         on = options.delete(:on)
         on = ACTION_MAP.keys if on.nil?
 
@@ -15,7 +15,7 @@ module Cthulhu
         on.each do |o|
           action = ACTION_MAP[o.to_sym]
           next if action.nil?
-          self.send( action, {|model| model.cthulhu_publish("#{o}ed", options)} )
+          self.send( action ) { |model| model.cthulhu_publish("#{o}ed", options) }
         end
       end
     end
