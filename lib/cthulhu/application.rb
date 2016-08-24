@@ -109,8 +109,8 @@ module Cthulhu
     end
     def self.parse(delivery_info, properties, payload)
       headers = properties.headers
-      # ignore messages sent by myself
-      # return "ignore!" if headers["from"] == Cthulhu::Application.name
+      options = headers["options"]
+
       message = JSON.parse payload, object_class: OpenStruct
       return 'ignore!' unless valid?(properties, message)
 
