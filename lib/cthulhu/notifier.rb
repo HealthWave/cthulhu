@@ -14,6 +14,7 @@ module Cthulhu
         include Cthulhu::Notifier::InstanceMethods
         on.each do |o|
           action = ACTION_MAP[o.to_sym]
+          next if action.nil?
           self.send( action, {|model| model.cthulhu_publish("#{o}ed", options)} )
         end
       end
