@@ -5,7 +5,7 @@ module Cthulhu
     end
 
     module ClassMethods
-      ACTION_MAP = { destroy: "after_destory", create: 'after_save', update: 'after_save' }
+      ACTION_MAP = { destroy: "after_destroy", create: 'after_save', update: 'after_save' }
 
       def cthulhu_notify(options={})
         on = options.delete(:on)
