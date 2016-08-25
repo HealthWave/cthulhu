@@ -22,6 +22,16 @@ describe Cthulhu do
     }
   end
 
+  def "#catch_all" do
+    subject.delete_routes
+    subject.global_route to: 'TestHandler', action: 'test_action'
+    subject.global_route to: 'TestHandler2', action: 'test_action2'
+
+    expect(subject.global_route).to be == {
+      'TestHandler2', 'test_action2'
+    }
+  end
+
   it "#channel" do
     allow(Bunny).to receive(:new).and_return(Bunny::Session)
     allow(Bunny::Session).to receive(:start)

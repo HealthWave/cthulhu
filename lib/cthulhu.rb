@@ -7,6 +7,7 @@ CTHULHU_QUEUE=Queue.new
 module Cthulhu
   @@routes = nil
   @@channel = nil
+  @@global_route = nil
 
   def self.delete_routes
     @@routes = nil
@@ -21,6 +22,14 @@ module Cthulhu
   def self.route(subject:, to: )
     @@routes ||= {}
     @@routes[subject] = to
+  end
+
+  def self.catch_all(to:, action:)
+    @@global_route = {to: to, action: action}
+  end
+
+  def self.global_route
+    @@global_route
   end
 
   def self.channel

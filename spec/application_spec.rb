@@ -14,6 +14,10 @@ class TestHandler < Cthulhu::Handler
   def ignore_test
     ignore!
   end
+
+  def global_action
+
+  end
 end
 
 describe Cthulhu::Application do
@@ -103,6 +107,25 @@ describe Cthulhu::Application do
     expect_any_instance_of(TestHandler).to receive(:handle_action).with("ack_test")
     subject.call_handler_for(properties, message)
   end
+
+  describe "#call_global_route" do
+
+    it "calls the global route" do
+      Cthulhu.routes do
+        catch_all to: 'TestHandler', action: 'global_action'
+      end
+
+      expect(TestHandler).to receive(:new)
+      subject.call_global_route({}, {})
+    end
+
+    it "errors when no global route" do
+      expect { subject.call_global_route({}, {}) }.to raise_error(MissingGlobalRouteError)
+      subject.call_global_route({}, {})
+    end
+  end
+
+
 
   it '#start' do
     # test the start method
