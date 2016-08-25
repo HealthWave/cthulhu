@@ -186,9 +186,5 @@ module Cthulhu
       klass = Object.const_get class_name
       klass.new(properties, message).handle_action(method_name)
     end
-
-    class MissingGlobalRouteError < RunTimeError
-    end
-
   end
 end
