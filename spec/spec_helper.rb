@@ -1,4 +1,5 @@
 require 'bundler/setup'
+require 'byebug'
 Bundler.setup
 
 require 'cthulhu' # and any other gems you need

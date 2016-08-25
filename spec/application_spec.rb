@@ -3,20 +3,21 @@ require 'ostruct'
 
 class TestHandler < Cthulhu::Handler
   def method
-
   end
+
   def ack_test
     ack!
   end
+
   def requeue_test
     requeue!
   end
+
   def ignore_test
     ignore!
   end
 
   def global_action
-
   end
 end
 
@@ -88,44 +89,42 @@ describe Cthulhu::Application do
   end
 
   it '#handler_exists?' do
-
-    expect(subject.handler_exists?(properties, message)).to be == "TestHandler"
+    expect(subject.handler_exists?(p[:headers], message)).to be == "TestHandler"
 
     p = {
       headers: {"subject" => "fail", "action" => "ack_test", "from" => "app"},
       timestamp: Time.now,
       message_id: '374892374823748923748'
     }
-    properties = Bunny::MessageProperties.new(p)
-    expect(subject.handler_exists?(properties, message)).to be == false
-
+    expect(subject.handler_exists?(p[:headers], message)).to be == false
   end
 
   it '#call_handler_for' do
     # expect that calling the method, the class will be instantiated
     # and the method called
+    allow(Cthulhu::Application).to receive_message_chain(:logger, :info)
     expect_any_instance_of(TestHandler).to receive(:handle_action).with("ack_test")
     subject.call_handler_for(properties, message)
   end
 
   describe "#call_global_route" do
-
     it "calls the global route" do
       Cthulhu.routes do
         catch_all to: 'TestHandler', action: 'global_action'
       end
 
-      expect(TestHandler).to receive(:new)
-      subject.call_global_route({}, {})
+      expect_any_instance_of(TestHandler).to receive(:handle_action).with("global_action")
+      subject.call_global_route(properties, message)
     end
 
     it "errors when no global route" do
-      expect { subject.call_global_route({}, {}) }.to raise_error(MissingGlobalRouteError)
-      subject.call_global_route({}, {})
+      Cthulhu.routes do
+        catch_all to: 'FakeHandler', action: 'global_action'
+      end
+
+      expect { subject.call_global_route(properties, message) }.to raise_error(Cthulhu::MissingGlobalRouteError)
     end
   end
-
-
 
   it '#start' do
     # test the start method

@@ -125,7 +125,7 @@ module Cthulhu
       handler = handler_exists?(headers, message)
 
       unless handler
-        return call_global_route(properties, message) unless global_route.nil?
+        return call_global_route(properties, message) unless Cthulhu.global_route.nil?
         logger.error "No route matches subject '#{headers["subject"]}'"
         return "ignore!"
       end
@@ -172,10 +172,10 @@ module Cthulhu
     end
 
     def self.call_global_route(properties, message)
-      klass = Object.const_get global_route[:to]
-      klass.new(properties, message).handle_action(global_route[:action])
+      klass = Object.const_get Cthulhu.global_route[:to]
+      klass.new(properties, message).handle_action(Cthulhu.global_route[:action])
     rescue NameError => e
-      raise MissingGlobalRouteError.new("#{global_route[:to]} class is missing or not defined")
+      raise MissingGlobalRouteError.new("#{Cthulhu.global_route[:to]} class is missing or not defined, global routes must be defined.")
     end
 
     def self.call_handler_for(properties, message)
