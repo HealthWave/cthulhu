@@ -11,6 +11,7 @@ module Cthulhu
 
   def self.delete_routes
     @@routes = nil
+    @@global_route = nil
   end
 
   def self.routes &block
@@ -44,6 +45,9 @@ module Cthulhu
       Cthulhu::Pool.start
     end
     CTHULHU_QUEUE << message
+  end
+
+  class MissingGlobalRouteError < NameError
   end
 end
 
