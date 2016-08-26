@@ -15,7 +15,7 @@ module Cthulhu
         on.each do |o|
           action = ACTION_MAP[o.to_sym]
           next if action.nil?
-          self.send( action ) { |model| model.cthulhu_publish("#{o}ed", options) }
+          self.send( action ) { |model| model.cthulhu_publish("#{o}", options) }
         end
       end
     end
