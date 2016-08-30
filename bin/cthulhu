@@ -3,6 +3,7 @@
 require 'fileutils'
 require 'securerandom'
 require 'envyable'
+require 'cthulhu'
 if File.exist?("#{Dir.pwd}/config/env.yml")
   puts "Loading #{Dir.pwd}/config/env.yml"
   Envyable.load("#{Dir.pwd}/config/env.yml")
@@ -117,6 +118,7 @@ else
   case command
   when 'start', 's' then start_app(gem_path)
   when 'console', 'c' then start_console(gem_path)
+  when '-v', '--version', "version" then puts "#{Gem.loaded_specs["cthulhu"].version}"
   else
     usage
   end
