@@ -134,6 +134,8 @@ module Cthulhu
 
     end
     def self.valid?(properties, message)
+      # Just for clarity, here message means payload
+
       # carefully inspect the message
       headers = properties.headers
       unless  (

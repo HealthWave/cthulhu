@@ -39,7 +39,12 @@ module Cthulhu
     conn.start
     @@channel = conn.create_channel
   end
-
+  def self.publish_now(message)
+    if Object.const_defined?("Rails")
+      Cthulhu::Application.name = Rails.application.class.parent_name
+    end
+    Cthulhu::Message.broadcast(message)
+  end
   def self.publish(message)
     if Cthulhu::Pool.thread.nil? || !Cthulhu::Pool.thread.alive?
       Cthulhu::Pool.start
