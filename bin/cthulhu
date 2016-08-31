@@ -103,8 +103,8 @@ def start_app(gem_path)
     exec('ruby config/application.rb')
   end
 end
-def start_console(gem_path)
-  exec("su - root -c 'cd /#{ENV["APP_HOME"]} && CONSOLE=1 bundle exec irb -r ./config/application.rb'")
+def start_console
+  exec "CONSOLE=1 irb -r ./config/application.rb"
 end
 
 if command && ARGV[1]
@@ -117,7 +117,7 @@ if command && ARGV[1]
 else
   case command
   when 'start', 's' then start_app(gem_path)
-  when 'console', 'c' then start_console(gem_path)
+  when 'console', 'c' then start_console
   when '-v', '--version', "version" then puts "#{Gem.loaded_specs["cthulhu"].version}"
   else
     usage
