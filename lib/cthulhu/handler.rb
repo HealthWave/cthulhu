@@ -1,11 +1,12 @@
 module Cthulhu
   class Handler
-    attr_accessor :message, :properties, :headers
+    attr_accessor :message, :properties, :headers, :full_message
 
-    def initialize(properties, message)
-      @message = message
-      @properties = properties
-      @headers = properties.headers
+    def initialize(message)
+      @full_message = message
+      @message = message.payload
+      @properties = message.properties
+      @headers = message.headers
     end
 
     class << self
@@ -52,6 +53,10 @@ module Cthulhu
 
     def ignore!
       "ignore!"
+    end
+
+    def publish(m)
+      full_message.reply m
     end
 
     def callbacks

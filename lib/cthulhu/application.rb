@@ -79,7 +79,6 @@ module Cthulhu
           # acknowledge the message and remove from queue
           Cthulhu.channel.ack(delivery_info.delivery_tag, false)
         when "ignore!"
-          logger.info Cthulhu.routes
           # reject the message but dont add it back to the queue
           Cthulhu.channel.reject(delivery_info.delivery_tag)
         when "requeue!"
@@ -108,85 +107,57 @@ module Cthulhu
       end
     end
     def self.parse(delivery_info, properties, payload)
-      headers = properties.headers
-      options = headers["options"]
-
-      message = JSON.parse payload, object_class: OpenStruct
-      return 'ignore!' unless valid?(properties, message)
-
-      # set the log format
-      logger.formatter = proc do |severity, datetime, progname, m|
-        "#{properties.timestamp || DateTime.now} #{properties.message_id} #{properties.headers['from']} #{m}\n"
-      end
-
-      logger.info "Got message - headers: #{headers} - payload: #{message}"
-      logger.info "Message is valid"
-
-      handler = handler_exists?(headers, message)
-
-      unless handler
-        return call_global_route(properties, message) unless Cthulhu.global_route.nil?
-        logger.error "No route matches subject '#{headers["subject"]}'"
-        return "ignore!"
-      end
-
-      return call_handler_for(properties, message)
-
-    end
-    def self.valid?(properties, message)
-      # Just for clarity, here message means payload
-
-      # carefully inspect the message
-      headers = properties.headers
-      unless  (
-                properties.message_id.is_a?(String) &&
-                headers["subject"].is_a?(String) &&
-                headers["action"].is_a?(String) &&
-                message.is_a?(OpenStruct) &&
-                properties.timestamp.is_a?(Time) &&
-                headers["from"].is_a?(String)
-              )
+      message = Cthulhu::IncomingMessage.new(delivery_info, properties, payload)
+      if message.valid?
+        # set the log format
         logger.formatter = proc do |severity, datetime, progname, m|
-          "E -- #{datetime} ERROR #{m}\n"
+          "#{message.timestamp} #{Cthulhu::Application.name} #{message.uuid} #{message.from} #{m}\n"
         end
-        logger.error "Invalid message: #{properties.inspect} - #{message}"
-        return false
-      end
-      if headers["subject"].blank? || headers["action"].blank? || headers["from"].blank? || message.empty?
-        logger.error "Invalid message: #{headers.inspect} - #{message}"
-        return false
+        result, response = handler_exists?(message)
+        if result
+          return call_handler_for(message)
+        elsif Cthulhu.global_route.nil?
+          logger.error response
+          logger.info "Valid routes are: #{Cthulhu.routes}"
+          return "ignore!"
+        else
+          return call_global_route(message)
+        end
       else
-        return true
+        return 'ignore!'
       end
+
     end
 
-    def self.handler_exists?(headers, message)
-      class_name = Cthulhu.routes[ headers["subject"] ]
+    def self.handler_exists?(message)
+
+      class_name = Cthulhu.routes[ message.subject ]
       if Cthulhu.routes.nil? || class_name.nil?
-        return false
+        return [false, "No route matches subject #{message.subject}"]
       end
       klass = Object.const_get class_name
-
-      return false unless klass.method_defined?( headers["action"].downcase )
-      return class_name
+      if klass.method_defined?( message.action )
+        return [true, class_name]
+      else
+        return [false, "Action #{message.action} is not defined on handler #{class_name}"]
+      end
     rescue NameError => e
-      return false
+      return [false, e]
     end
 
-    def self.call_global_route(properties, message)
+    def self.call_global_route(message)
       klass = Object.const_get Cthulhu.global_route[:to]
-      klass.new(properties, message).handle_action(Cthulhu.global_route[:action])
+      klass.new(message).handle_action(Cthulhu.global_route[:action])
     rescue NameError => e
       raise MissingGlobalRouteError.new("#{Cthulhu.global_route[:to]} class is missing or not defined, global routes must be defined.")
     end
 
-    def self.call_handler_for(properties, message)
-      headers = properties.headers
-      class_name = Cthulhu.routes[headers["subject"]]
-      method_name = headers["action"].downcase
-      logger.info "Routing subject '#{headers["subject"]}' to #{class_name}##{method_name}"
+    def self.call_handler_for(message)
+      class_name = Cthulhu.routes[message.subject]
+      method_name = message.action
+      logger.info "Routing subject '#{message.subject}' to #{class_name}##{method_name}"
       klass = Object.const_get class_name
-      klass.new(properties, message).handle_action(method_name)
+      klass.new(message).handle_action(method_name)
     end
   end
 end
