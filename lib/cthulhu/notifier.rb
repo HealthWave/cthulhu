@@ -15,8 +15,13 @@ module Cthulhu
         on.each do |o|
           action = ACTION_MAP[o.to_sym]
           next if action.nil?
-          self.send( action ) { |model| model.cthulhu_publish("#{o}", options) }
+
+          self.send( action ) { |model| model.cthulhu_publish("#{past_tensify(o)}", options) }
         end
+      end
+      private
+      def past_tensify(action)
+        action.last == 'e' ? "#{action}d" : "#{action}ed"
       end
     end
 
