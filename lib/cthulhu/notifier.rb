@@ -6,20 +6,17 @@ module Cthulhu
 
     module ClassMethods
       def cthulhu_notify(options={})
-        include Cthulhu::Notifier::InstanceMethods
         @notifier = Notifier.new(self, options)
 
         @notifier.setup_lifecyle_events!
       end
 
       def cthulhu_changed(options={}, &block)
-        include Cthulhu::Notifier::InstanceMethods
         options[:payload] = block if block_given?
         @notifier = Notifier.new(self, options)
 
         @notifier.setup_change_events!
       end
-
     end
 
     module InstanceMethods
@@ -58,14 +55,14 @@ module Cthulhu
             return unless instance.send("#{attribute}_changed?")
             payload = generate_payload( instance, attribute, options.delete(:payload) )
 
-            instance.cthulhu_publish( "#{attribute}_updated", options.merge({payload: payload}) )
+            instance.cthulhu_publish( "#{attribute}_changed", options.merge({payload: payload}) )
           end
         end
       end
 
       private
         def past_tensify(action)
-          action = o.last == 'e' ? "#{o}d" : "#{o}ed"
+          action = action.last == 'e' ? "#{action}d" : "#{action}ed"
         end
 
         def generate_payload(instance, attribute, payload)
@@ -87,7 +84,6 @@ module Cthulhu
             "datetime" => DateTime.now
           }
         end
-    end
 
   end
 end
