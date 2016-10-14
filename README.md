@@ -86,3 +86,17 @@ Cthulhu can do unsafe RPC calls too. Just edit config/application.rb on your cth
 # The name of the apps must match the cthulhu app name, or Rails.application.class.parent_name
 RPC_APPS = ["MyMonolith1", "MyMonolith2"]
 ```
+
+
+##Running on Rails
+Create the file config/initializers/cthulhu.rb
+```
+Cthulhu.configure do
+  rails = true
+  organization = 'com.example'
+  app_name = 'myApp'
+  fqan = "#{organization}.#{app_name}"
+  parent_inbox_exchange = fqan
+  inbox_exchange = "#{parent_inbox_exchange}.#{inbox}"
+end
+```

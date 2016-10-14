@@ -1,6 +1,24 @@
 module Cthulhu
   class Handler
+    def self.descendants
+      d = ObjectSpace.each_object(Class).select { |klass| klass < self }
+      d.map do |klass|
+        klass.instance_methods(false).map do |m|
+          x = {name: m}
+          x[:arguments] = self.method(m).parameters.map do |p|
+            {p[1] => p[0] == :req ? true : false }
+          end
+          x
+        end
+      end
+    end
+
+
     attr_accessor :message, :properties, :headers, :full_message
+
+    def self.logger
+      Cthulhu.logger
+    end
 
     def initialize(message)
       @full_message = message

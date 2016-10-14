@@ -104,7 +104,7 @@ def start_app(gem_path)
   end
 end
 def start_console
-  exec "CONSOLE=1 irb -r ./config/application.rb"
+  exec "irb -r ./config/environment.rb"
 end
 
 if command && ARGV[1]

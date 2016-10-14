@@ -2,37 +2,12 @@ require 'ostruct'
 
 module Cthulhu
   class Application
-    @@name = nil
-    @@logger = nil
-    @@queue_name = nil
-    @@dry_run = false
-    def self.logger=(l)
-      raise "Invalid logger. Expected Logger but got #{logger.class.name}" unless l.instance_of?(Logger) || l.instance_of?(ActiveSupport::Logger)
-      @@logger = l
-    end
+
     def self.logger
-      @@logger
+      Cthulhu.logger
     end
-    def self.name
-      @@name
-    end
-    def self.name=(name)
-      @@name = name
-    end
-    def self.queue_name
-      @@queue_name
-    end
-    def self.queue_name=(queue_name)
-      @@queue_name = queue_name
-    end
-    def self.dry_run=(state)
-      @@dry_run = state
-    end
-    def self.dry_run
-      @@dry_run
-    end
-    def self.start(block: true, exchange_type: 'broadcast')
-      raise "CTHULHU_ENV constant is not set." unless ENV['CTHULHU_ENV']
+
+    def self.start(block: true)
       return if ENV['CONSOLE'] == '1'
       puts "Starting #{Cthulhu::Application.name} on queue #{Cthulhu::Application.queue_name}, enviroment #{ENV['CTHULHU_ENV']}."
       puts "Cthulhu #{Gem.loaded_specs["cthulhu"].version} loaded. Press CTRL+C to QUIT."
@@ -68,26 +43,7 @@ module Cthulhu
       ############################
       ##### BROADCAST QUEUE ######
       ############################
-      queue_name = "#{Cthulhu::Application.queue_name}.broadcast"
-      queue = Cthulhu.channel.queue(queue_name, auto_delete: false, durable: true)
-      exchange = Cthulhu.channel.fanout(exchange_type, durable: true)
-      queue.bind(exchange)
-      queue.subscribe(block: block, manual_ack: true) do |delivery_info, properties, payload|
-
-        case parse(delivery_info, properties, payload)
-        when "ack!"
-          # acknowledge the message and remove from queue
-          Cthulhu.channel.ack(delivery_info.delivery_tag, false)
-        when "ignore!"
-          # reject the message but dont add it back to the queue
-          Cthulhu.channel.reject(delivery_info.delivery_tag)
-        when "requeue!"
-          # reject the message and requeue
-          Cthulhu.channel.reject(delivery_info.delivery_tag, true)
-        else
-          logger.error "Handler actions must return ack!, ignore! or requeue!"
-        end
-      end
+      Cthulhu::Queue.new(type: 'fanout').start
       ####### publish I am here
       options = {
         message_id: SecureRandom.uuid,
