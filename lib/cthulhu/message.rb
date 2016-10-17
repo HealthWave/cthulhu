@@ -2,28 +2,35 @@ require 'securerandom'
 require 'json'
 module Cthulhu
   class IncomingMessage
-    attr_accessor :payload, :subject, :action, :headers, :options, :from, :delivery_info, :properties, :uuid, :timestamp, :logger
+    attr_accessor :payload, :headers, :options, :from, :delivery_info,
+                  :properties, :message_id, :timestamp, :logger, :content_type,
+                  :raw_payload
     def initialize(delivery_info, properties, payload)
-      @logger = Cthulhu::Application.logger.clone
+      @logger = Cthulhu.logger.clone
       @delivery_info = delivery_info
       @properties = properties
-      @payload = JSON.parse payload, object_class: OpenStruct
       @headers = @properties.headers
-      @subject = @headers["subject"]
-      @action = @headers["action"].downcase if headers['action'].is_a?(String)
+      @content_type = @headers["content-type"]
+      @raw_payload = payload
+      case @content_type
+      when 'application/json'
+        @payload = JSON.parse payload
+      when 'object/marshal-dump'
+        @payload = Marshal.load(payload)
+      else
+        @payload = payload
+      end
       @options = @headers["options"]
       @from = @headers["from"]
-      @uuid = properties.message_id
+      @message_id = properties.message_id
       @timestamp = properties.timestamp
     end
 
     def valid?
       # carefully inspect the message
       if  (
-              uuid.is_a?(String) &&
-              subject.is_a?(String) && !subject.blank?
-              action.is_a?(String) && !action.blank?
-              payload.is_a?(OpenStruct) &&
+              message_id.is_a?(String) && !message_id.blank?
+              payload.is_a?(Hash) &&
               timestamp.is_a?(Time) &&
               from.is_a?(String) && !from.blank?
             )

@@ -1,13 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'fileutils'
-require 'securerandom'
-require 'envyable'
 require 'cthulhu'
-if File.exist?("#{Dir.pwd}/config/env.yml")
-  puts "Loading #{Dir.pwd}/config/env.yml"
-  Envyable.load("#{Dir.pwd}/config/env.yml")
-end
 
 command = ARGV[0]
 
@@ -15,7 +9,7 @@ gem_path = File.expand_path File.dirname(__FILE__)
 
 
 def usage
-  puts "Usage: cthulhu new app_name"
+  puts "Usage: cthulhu new app_name organization # Ex: cthulhu new myApp com.example "
   puts "Usage: cthulhu handler handler_name"
   puts "Usage: cthulhu start"
 end
@@ -47,10 +41,12 @@ end
 
 def new_app(gem_path)
   app_name = ARGV[1]
-  queue_uuid = SecureRandom.uuid
+  organization = ARGV[2]
+  return usage unless app_name && organization
   Dir.mkdir "./#{app_name}" unless File.exists?(app_name)
-  puts "Copying files FROM #{gem_path}/../template/. INTO #{Dir.pwd}/#{app_name} "
+  puts "Copying files FROM #{gem_path}/../template/. INTO #{Dir.pwd}/#{app_name}"
   FileUtils.cp_r "#{gem_path}/../template/.", "./#{app_name}/"
+  puts "Creating config/config.rb"
   files = `grep -rl '__APP_NAME__' #{app_name}`.inspect.gsub('\n', ':')
   array = files.split(':')
   array.pop
@@ -69,39 +65,26 @@ def new_app(gem_path)
 
   dir_names.each do |dir_name|
     path = base_path + "/#{dir_name}"
-    Dir.mkdir(path) unless File.exists?(path)
+    unless File.exists?(path)
+      puts "Creating #{path}"
+      Dir.mkdir(path)
+    end
+    puts "Creating #{path}/.keep"
     FileUtils.touch("#{path}/.keep")
   end
-
+  puts "Creating #{app_name}/.gitignore"
   File.open("./#{app_name}/.gitignore", "w") {|f| f.write(".DS_Store\napp/log/*.log\napp/tmp/*.pid") }
-
-  puts "Done. No life matter."
+  puts "Done."
 end
 
 def start_app(gem_path)
-  if File.readlines("Gemfile").grep(/rails/).size > 0
-    puts "Rails detected. Loading environment."
-    require 'cthulhu/railtie'
-    require "#{Dir.pwd}/config/environment"
-    require "#{Dir.pwd}/config/cthulhu_routes.rb"
-    Dir["./app/handlers/**/*.rb"].each {|file| require file }
-    ENV['CTHULHU_ENV'] = Rails.env
-    puts "CTHULHU_ENV = #{Rails.env}"
-    Cthulhu::Application.name = Rails.application.class.parent_name
-    Cthulhu::Application.queue_name = Cthulhu::Application.name
-    case Rails.env
-    when "development", "test"
-      Cthulhu::Application.logger = Logger.new(STDOUT)
-    else
-      Cthulhu::Application.logger = Logger.new("log/cthulhu-#{Cthulhu::Application.name}.log")
-    end
-    puts "APP NAME: #{Cthulhu::Application.name}"
-    puts "QUEUE_NAME: #{Cthulhu::Application.queue_name}"
-    puts "LOGGER: #{Cthulhu::Application.logger}"
-    Cthulhu::Application.start
-  else
-    exec('ruby config/application.rb')
-  end
+  require "#{Dir.pwd}/config/environment"
+  puts "FQAN: #{Cthulhu.fqan}"
+  puts "Rails: #{Cthulhu.rails?}"
+  puts "Inbox Exchange: #{Cthulhu.inbox_exchange_name}"
+  puts "Organization Inbox Exchange: #{Cthulhu.organization_inbox_exchange_name}"
+  puts "Logger: #{Cthulhu.logger}"
+  Cthulhu::Application.start
 end
 def start_console
   exec "irb -r ./config/environment.rb"

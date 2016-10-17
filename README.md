@@ -95,8 +95,5 @@ Cthulhu.configure do
   rails = true
   organization = 'com.example'
   app_name = 'myApp'
-  fqan = "#{organization}.#{app_name}"
-  parent_inbox_exchange = fqan
-  inbox_exchange = "#{parent_inbox_exchange}.#{inbox}"
 end
 ```

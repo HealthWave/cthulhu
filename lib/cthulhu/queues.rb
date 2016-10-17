@@ -1,17 +1,15 @@
 module Cthulhu
   class Queue
-    attr_accessor :type, :name, :queue, :exchange, :block
-    def initialize(type:, block:, topic: nil)
+    attr_accessor :type, :block
+    def initialize(type:, block:)
       @type = type
       @block = block
-      @topic = topic
     end
 
     def start
       case type
       when 'status'
       when 'topic'
-        raise "Topic queue requires a topic." unless topic
         start_topic
       when 'fanout'
         start_fanout
@@ -20,11 +18,25 @@ module Cthulhu
     end
 
     def start_topic
-      exchange = Cthulhu.channel.topic("topic", auto_delete: false)
-      name = "#{Cthulhu::Application.queue_name}.topic"
-      queue = Cthulhu.channel.queue(name, auto_delete: false, durable: true, exclusive: false)
-      queue.bind(exchange, routing_key: topic)
+      queue = Cthulhu.channel.queue(Cthulhu.inbox_exchange_name, auto_delete: false, durable: true, exclusive: false)
+      queue.bind(Cthulhu.inbox_exchange)
+      queue.subscribe(block: self.block, manual_ack: true) do |delivery_info, metadata, payload|
+        incoming_message = Cthulhu::IncomingMessage.new(delivery_info, properties, payload)
 
+        case incoming_message.call_handler(delivery_info, properties, payload)
+        when "ack!"
+          # acknowledge the message and remove from queue
+          Cthulhu.channel.ack(delivery_info.delivery_tag, false)
+        when "ignore!"
+          # reject the message but dont add it back to the queue
+          Cthulhu.channel.reject(delivery_info.delivery_tag)
+        when "requeue!"
+          # reject the message and requeue
+          Cthulhu.channel.reject(delivery_info.delivery_tag, true)
+        else
+          logger.error "Handler actions must return ack!, ignore! or requeue!"
+        end
+      end
     end
 
     def start_fanout
@@ -51,7 +63,7 @@ module Cthulhu
     end
 
     # parsing incoming messages
-    def self.parse(delivery_info, properties, payload)
+    def parse(delivery_info, properties, payload)
       message = Cthulhu::IncomingMessage.new(delivery_info, properties, payload)
       if message.valid?
         # set the log format

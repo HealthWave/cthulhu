@@ -95,7 +95,8 @@ module Cthulhu
     end
 
     private
-
+      def expects
+      end
       def filter_callbacks_pass? method_name
         filters = fire_callbacks(:filter, method_name)
         filters.empty? || filters.all? {|filter| filter.nil? || filter }
