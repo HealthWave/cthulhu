@@ -1,6 +1,5 @@
 source 'https://rubygems.org'
 
-gem 'envyable'
 gem 'cthulhu', "~>0.5", git: "https://github.com/HealthWave/cthulhu.git"
 gem 'json'
 group :development do

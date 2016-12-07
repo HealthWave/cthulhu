@@ -13,23 +13,23 @@ module Cthulhu
       end
     end
 
-
-    attr_accessor :message, :properties, :headers, :full_message
-
-    def self.logger
-      Cthulhu.logger
-    end
+    attr_accessor :message, :properties, :headers,
+                  :payload, :logger
 
     def initialize(message)
-      @full_message = message
-      @message = message.payload
-      @properties = message.properties
-      @headers = message.headers
+      @logger = ::Cthulhu.logger.clone
+      @message = message
+      @payload = @message.payload
+      @properties = @message.properties
+      @headers = @message.headers
+      @logger.formatter = proc do |severity, datetime, progname, m|
+        "#{datetime.to_f} #{severity} SENT_AT=#{@message.timestamp.to_i} GROUP_ID=#{@message.group_id} FROM=#{@message.sender_fqan} TO=#{@message.to} MESSAGE_ID=#{@message.message_id} CORRELATION_ID=#{@message.correlation_id|| "nil"} | #{m}\n"
+      end
+      @logger.info "MESSAGE RECEIVED: #{@payload}"
     end
 
     class << self
-      attr_accessor :callbacks, :logger
-
+      attr_accessor :callbacks
       def before_action method, opts={}
         register_callback(:before, method, opts)
       end
@@ -52,29 +52,21 @@ module Cthulhu
         @callbacks ||= {}
       end
 
-      def logger
-        @logger ||= Cthulhu::Application.logger
-      end
-    end
-
-    def logger
-      self.class.logger
     end
 
     def ack!
-      "ack!"
+      @logger.info "ACKNOWLEDGED"
+      return :ack
     end
 
     def requeue!
-      "requeue!"
+      @logger.info "REQUEUED"
+      return :requeue
     end
 
     def ignore!
-      "ignore!"
-    end
-
-    def publish(m)
-      full_message.reply m
+      @logger.info "IGNORED"
+      return :ignore
     end
 
     def callbacks

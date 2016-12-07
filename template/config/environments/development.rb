@@ -1,6 +1,5 @@
-Cthulhu.configure do
-  
-  logger = Logger.new(STDOUT)
+Cthulhu.configure do |config|
 
+  config.logger = Logger.new(STDOUT)
 
 end

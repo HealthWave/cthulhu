@@ -47,14 +47,14 @@ def new_app(gem_path)
   puts "Copying files FROM #{gem_path}/../template/. INTO #{Dir.pwd}/#{app_name}"
   FileUtils.cp_r "#{gem_path}/../template/.", "./#{app_name}/"
   puts "Creating config/config.rb"
-  files = `grep -rl '__APP_NAME__' #{app_name}`.inspect.gsub('\n', ':')
+  files = `egrep -rl "(__APP_NAME__|__ORGANIZATION__)" #{app_name}`.inspect.gsub('\n', ':')
   array = files.split(':')
   array.pop
   array.each do |file_name|
     file_name = "#{Dir.pwd}/#{file_name}"
     file_name = file_name.gsub('"', '')
     text = File.read(file_name)
-    new_contents = text.gsub(/__APP_NAME__/, app_name)
+    new_contents = text.gsub(/__APP_NAME__/, app_name).gsub(/__ORGANIZATION__/, organization)
     # new_contents = new_contents.gsub(/__QUEUE_UUID__/, queue_uuid)
     # To write changes to the file, use:
     File.open(file_name, "w") {|file| file.puts new_contents }
@@ -80,7 +80,7 @@ end
 def start_app(gem_path)
   require "#{Dir.pwd}/config/environment"
   puts "FQAN: #{Cthulhu.fqan}"
-  puts "Rails: #{Cthulhu.rails?}"
+  puts "Rails: #{Cthulhu.rails || 'false'}"
   puts "Inbox Exchange: #{Cthulhu.inbox_exchange_name}"
   puts "Organization Inbox Exchange: #{Cthulhu.organization_inbox_exchange_name}"
   puts "Logger: #{Cthulhu.logger}"

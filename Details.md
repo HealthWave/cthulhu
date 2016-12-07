@@ -9,6 +9,5 @@ Message comes in
   Instantiate handler and run
 
 Sending message
-  Set content-type header to application/json if json
-  Set content-type header to object/marshal-dump if it is a dump
-  
+  Set type property to application/json if json
+  # Set content-type header to object/marshal-dump if it is a dump
