@@ -93,20 +93,6 @@ module Cthulhu
     self.inbox_exchange = Cthulhu::Inbox.create(parent: self.organization_inbox_exchange)
   end
 
-  # def self.publish_now(message)
-  #   if Object.const_defined?("Rails")
-  #     Cthulhu::Application.name = Rails.application.class.parent_name
-  #   end
-  #   Cthulhu::Message.broadcast(message)
-  # end
-
-  # def self.publish(message)
-  #   if Cthulhu::Pool.thread.nil? || !Cthulhu::Pool.thread.alive?
-  #     Cthulhu::Pool.start
-  #   end
-  #   CTHULHU_QUEUE << message
-  # end
-
   class MissingGlobalRouteError < NameError
   end
 end
@@ -126,8 +112,6 @@ require 'cthulhu/inbox'
 require 'cthulhu/queue'
 # Railtie
 require 'cthulhu/railtie' if Cthulhu.rails
-# Alias
-C = Cthulhu
 
 # require models and handlers folder
 Dir["./app/models/**/*.rb"].each {|file| require file }
