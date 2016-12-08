@@ -1,6 +1,7 @@
 require 'bunny'
 require 'json'
 require 'logger'
+require 'httparty'
 require 'cthulhu/helpers/mattr_accessors'
 require 'cthulhu/helpers/cattr_accessors'
 require 'byebug'
@@ -12,7 +13,7 @@ module Cthulhu
                  :app_name, :inbox_exchange, :inbox_exchange_name,
                  :organization_inbox_exchange, :organization_inbox_exchange_name,
                  :fqan, :rails, :env, :peers,
-                 :rabbit_user, :rabbit_pw, :rabbit_host, :rabbit_port, :rabbit_vhost, :rabbit_ssl
+                 :rabbit_user, :rabbit_pw, :rabbit_host, :rabbit_port, :rabbit_vhost, :rabbit_ssl, :rabbit_api_url
 
   def self.configure &block
     # set rails to false by default.
