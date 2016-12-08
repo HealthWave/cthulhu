@@ -12,7 +12,7 @@ module Cthulhu
   mattr_accessor :routes, :routes_exp, :channel, :global_route, :logger, :organization,
                  :app_name, :inbox_exchange, :inbox_exchange_name,
                  :organization_inbox_exchange, :organization_inbox_exchange_name,
-                 :fqan, :rails, :env, :peers,
+                 :fqan, :rails, :env, :peers, :consumer_tag,
                  :rabbit_user, :rabbit_pw, :rabbit_host, :rabbit_port, :rabbit_vhost, :rabbit_ssl, :rabbit_api_url
 
   def self.configure &block
@@ -24,6 +24,7 @@ module Cthulhu
       # byebug
       self.organization_inbox_exchange_name = organization
       self.fqan = "#{organization_inbox_exchange_name}.#{app_name}"
+      self.consumer_tag = fqan
       self.inbox_exchange_name = fqan
       self.rabbit_host ||= '127.0.0.1'
       self.rabbit_vhost ||= '/'

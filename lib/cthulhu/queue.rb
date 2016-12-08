@@ -19,7 +19,7 @@ module Cthulhu
     def start_inbox
       queue = Cthulhu.channel.queue(Cthulhu.inbox_exchange_name, auto_delete: false, durable: true, exclusive: false)
       queue.bind(Cthulhu.inbox_exchange)
-      queue.subscribe(block: self.block, manual_ack: true) do |delivery_info, properties, payload|
+      queue.subscribe(consumer_tag: Cthulhu.consumer_tag, block: self.block, manual_ack: true) do |delivery_info, properties, payload|
         incoming_message = Cthulhu::IncomingMessage.new(delivery_info, properties, payload)
         case incoming_message.call_handler
         when :ack
