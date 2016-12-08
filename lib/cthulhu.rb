@@ -25,14 +25,15 @@ module Cthulhu
       self.organization_inbox_exchange_name = organization
       self.fqan = "#{organization_inbox_exchange_name}.#{app_name}"
       self.inbox_exchange_name = fqan
-      self.env = ENV['CTHULHU_ENV']
       self.rabbit_host ||= '127.0.0.1'
       self.rabbit_vhost ||= '/'
       self.rabbit_port ||= 5672
       self.rabbit_ssl ||= nil
       if rails? # RAILS is defined on config/initializers cthulhu.rb configure block on a rails app
         self.logger = Rails.logger
+        self.env = Rails.env
       else
+        self.env = ENV['CTHULHU_ENV']
         raise "Invalid logger. Expected Logger but got #{logger.class.name}" unless logger.instance_of?(Logger)
       end
     else
@@ -111,7 +112,7 @@ require 'cthulhu/notifier'
 require 'cthulhu/inbox'
 require 'cthulhu/queue'
 # Railtie
-require 'cthulhu/railtie' if Cthulhu.rails
+require 'cthulhu/railtie' if Cthulhu.rails?
 
 # require models and handlers folder
 Dir["./app/models/**/*.rb"].each {|file| require file }
