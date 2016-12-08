@@ -79,13 +79,25 @@ end
 
 def start_app(gem_path)
   require "#{Dir.pwd}/config/environment"
+  puts "Organization: #{Cthulhu.organization}"
   puts "FQAN: #{Cthulhu.fqan}"
   puts "Rails: #{Cthulhu.rails || 'false'}"
   puts "Inbox Exchange: #{Cthulhu.inbox_exchange_name}"
   puts "Organization Inbox Exchange: #{Cthulhu.organization_inbox_exchange_name}"
-  puts "Logger: #{Cthulhu.logger}"
+  puts "Logger: #{get_logger}"
   Cthulhu::Application.start
 end
+
+def get_logger
+  lgr = Cthulhu.logger.instance_variable_get(:@logdev).dev.inspect
+  case lgr
+  when /.*IO.*/
+    "STDOUT"
+  when /.*File.*/
+    lgr.path
+  end
+end
+
 def start_console
   exec "irb -r ./config/environment.rb"
 end
