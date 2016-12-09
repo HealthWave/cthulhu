@@ -9,7 +9,7 @@ Cthulhu.configure do |config|
   # config.rabbit_user = ENV['RABBIT_USER']
   # config.rabbit_pw = ENV['RABBIT_PW']
   # config.rabbit_host = ENV['RABBIT_HOST']
-  # config.rabbit_api_url = ENV['RABBIT_HOST']
+  # config.rabbit_api_url = 
   # default values
   # config.rabbit_vhost = '/'
   # config.rabbit_port = 5672
