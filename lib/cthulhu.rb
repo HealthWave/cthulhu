@@ -29,7 +29,8 @@ module Cthulhu
       self.rabbit_host ||= '127.0.0.1'
       self.rabbit_vhost ||= '/'
       self.rabbit_port ||= 5672
-      self.rabbit_ssl ||= nil
+      self.rabbit_ssl ||= false
+      self.rabbit_api_url ||= "http://#{self.rabbit_host}:15672/api"
       if rails? # RAILS is defined on config/initializers cthulhu.rb configure block on a rails app
         self.logger = Rails.logger
         self.env = Rails.env
@@ -49,6 +50,22 @@ module Cthulhu
   def self.delete_routes
     routes = nil
     global_route = nil
+  end
+
+  def self.require_all path
+    failed = []
+    Dir[path].each do |file|
+      begin
+        require file
+      rescue NameError => ex
+        failed << file
+      end
+    end
+    if failed.any?
+      self.require_all path
+    else
+      return true
+    end
   end
 
   def self.routes &block

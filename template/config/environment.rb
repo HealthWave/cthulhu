@@ -11,7 +11,8 @@ end
 Bundler.require(:default) # requires all gems outside groups
 Bundler.require(ENV['CTHULHU_ENV'])
 
-Dir["./config/environments/#{ENV['CTHULHU_ENV']}.rb"].each {|file| require file }
 Dir["./config/config.rb"].each {|file| require file }
+Dir["./config/environments/#{ENV['CTHULHU_ENV']}.rb"].each {|file| require file }
 Dir["./config/routes.rb"].each {|file| require file }
-Dir["./config/initializers/**/*.rb"].each {|file| require file }
+Cthulhu.require_all "./config/initializers/**/*.rb"
+Cthulhu.require_all "./app/**/*.rb"
