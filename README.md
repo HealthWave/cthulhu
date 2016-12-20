@@ -1,5 +1,5 @@
 # Cthulhu
-Cthulhu allows you to create a message network between apps using RabbitMQ as message broker. For now, all messages get sent to all Cthulhu apps connected to the same broker.
+Cthulhu allows you to create a message network between apps using RabbitMQ as message broker. Apps will only receive messages that match the routes defined on the routes file.
 
 ## Usage
 ```bash
@@ -14,7 +14,7 @@ cthulhu handler example
 Edit my-app/config/routes.rb and add:
 
 ```ruby
-route subject: 'example', to: 'ExampleHandler'
+route 'example.test', to: 'ExampleHandler#test'
 ```
 
 The app requires 5 env vars:
@@ -30,26 +30,23 @@ To run the app:
 ```
 cd my-app
 bundle install
-cthulhu server
+cthulhu s
 ```
 
-Watch the logs:
-```
-tail -f log/my-app.log
-```
+Logs are sent to STDOUT when running standalone, or to Rails.logger when running on Rails.
 
 ### Publishing a message
 ```ruby
 # make sure 'my_action' is a method inside ExampleHandler
-message = {subject: 'example', action: 'my_action', payload: {id: 1, text: 'lorem ipsum'}}
-Cthulhu.publish(message)
+m = Cthulhu::Message.new(payload: {a: 1}, routing_key: 'example.test')
+m.queue
 ```
 
 ### Receiving messages
 ```ruby
 # app/handlers/example_handler.rb
 class ExampleHandler < Cthulhu::Handler
-  def my_action
+  def test
     puts message
     puts properties
     puts headers
@@ -63,12 +60,34 @@ end
 
 Adding this to your `Gemfile`
 ```ruby
-  gem 'cthulhu', '~>0.3.0', git: 'https://github.com/HealthWave/cthulhu.git'
+  gem 'cthulhu', '~>0.5.0', git: 'https://github.com/HealthWave/cthulhu.git'
 ```
 Optional initializer
 ```ruby
 # FILE: config/initializers/cthulhu.rb
-Cthulhu::Application.logger = Rails.logger
+Cthulhu.configure do |config|
+  # The organization. Example: 'com.example'
+  config.organization = 'com.example'
+  # app name.
+  config.app_name = 'my-app'
+  # set this to true if rails is this is running inside rails
+  config.rails = true
+
+  # Logger. You can override that per environment
+  config.logger = Rails.logger
+
+  # RabbitMQ connection info. Note some values have defaults,
+  # and others you have to set yourself
+  # You can override this per environment
+  config.rabbit_user = ENV['RABBIT_USER']
+  config.rabbit_pw = ENV['RABBIT_PW']
+  config.rabbit_host = ENV['RABBIT_HOST']
+  # default values
+  # config.rabbit_vhost = '/'
+  config.rabbit_port = ENV['RABBIT_PORT']
+
+end
+
 ```
 Publish to the network when an active record model changes:
 ```ruby
@@ -76,24 +95,5 @@ class Model < ActiveRecord::Base
   ...
   cthulhu_notify
   ...
-end
-```
-
-##RPC calls
-
-Cthulhu can do unsafe RPC calls too. Just edit config/application.rb on your cthulhu app, or create an initializer for rails with:
-```ruby
-# The name of the apps must match the cthulhu app name, or Rails.application.class.parent_name
-RPC_APPS = ["MyMonolith1", "MyMonolith2"]
-```
-
-
-##Running on Rails
-Create the file config/initializers/cthulhu.rb
-```
-Cthulhu.configure do
-  rails = true
-  organization = 'com.example'
-  app_name = 'myApp'
 end
 ```
