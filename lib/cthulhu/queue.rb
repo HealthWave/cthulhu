@@ -1,9 +1,10 @@
 module Cthulhu
   class Queue
-    attr_accessor :type, :block
+    attr_accessor :type, :block, :logger
     def initialize(type, block: )
       @type = type
       @block = block
+      @logger = ::Cthulhu.logger.clone
     end
 
     def start
@@ -32,6 +33,9 @@ module Cthulhu
           # reject the message and requeue
           Cthulhu.channel.reject(delivery_info.delivery_tag, true)
         else
+          logger.formatter = proc do |severity, datetime, progname, m|
+            "#{datetime.to_f} #{severity} SENT_AT=#{incoming_message.timestamp.to_i} GROUP_ID=#{incoming_message.group_id} FROM=#{incoming_message.sender_fqan} TO=#{incoming_message.to} MESSAGE_ID=#{incoming_message.message_id} CORRELATION_ID=#{incoming_message.correlation_id|| "nil"} | #{m}\n"
+          end
           logger.error "Handler actions must return ack!, ignore! or requeue!"
         end
       end

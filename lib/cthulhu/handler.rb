@@ -81,9 +81,12 @@ module Cthulhu
 
       before_callbacks(method_name)
       response = self.public_send(method_name)
-      after_callbacks(method_name)
-
-      return response
+      after_response = after_callbacks(method_name)
+      if [:ack, :requeue, :ignore].include? response
+        return response
+      else
+        return after_response.first
+      end
     end
 
     private

@@ -78,10 +78,23 @@ module Cthulhu
         case r
         when '#', '*'
           self.routes_exp[r] = Regexp.new '\A[\w\.]*\z'
+        # For some reason rabbit is not behaving like the documentation and is treating single * like #
+        # so I commented the lines below
         # when '*'
         #   self.routes_exp[r] = Regexp.new '\A\w+\z'
         else
-          self.routes_exp[r] = Regexp.new '\\A' + r.gsub(/(\.#).*/, "[\\w\\.]*").gsub(/(?<=[\w\*])\.(?=[\w\*])/,"\\.").gsub(/\A\*/,'\\w+').gsub('.*', "\\.\\w+") + '\\z'
+          parts = r.split('.')
+          new_parts = parts.map do |p|
+            case p
+            when '*'
+              '\w+'
+            when '#'
+              '[\w\.]*'
+            else
+              p
+            end
+          end
+          self.routes_exp[r] = Regexp.new '\\A' + new_parts.join('\.') + '\\z'
         end
       end
     else
