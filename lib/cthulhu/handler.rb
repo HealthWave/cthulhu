@@ -1,4 +1,5 @@
 module Cthulhu
+  using Cthulhu
   class Handler
     def self.descendants
       d = ObjectSpace.each_object(Class).select { |klass| klass < self }

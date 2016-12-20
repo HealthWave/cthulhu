@@ -4,11 +4,11 @@ require 'logger'
 require 'httparty'
 require 'cthulhu/helpers/mattr_accessors'
 require 'cthulhu/helpers/cattr_accessors'
-require 'byebug'
+require 'cthulhu/helpers/blank_helper'
 # Create a queue where the messages will be lined up to be delivered to an exchange
 CTHULHU_QUEUE = Queue.new
-
 module Cthulhu
+  using Cthulhu # activate refinements
   mattr_accessor :routes, :routes_exp, :channel, :global_route, :logger, :organization,
                  :app_name, :inbox_exchange, :inbox_exchange_name,
                  :organization_inbox_exchange, :organization_inbox_exchange_name,
@@ -134,7 +134,6 @@ end
 ####### REQUIRES #######
 ########################
 require 'cthulhu/version'
-require 'cthulhu/helpers/blank_helper'
 require 'cthulhu/main'
 require 'cthulhu/handler'
 require 'cthulhu/message'

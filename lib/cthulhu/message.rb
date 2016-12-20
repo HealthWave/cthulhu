@@ -1,6 +1,7 @@
 require 'securerandom'
 require 'json'
 module Cthulhu
+  using Cthulhu # activate refinements
   class IncomingMessage
     attr_accessor :payload,
                   :headers, # Message headers
