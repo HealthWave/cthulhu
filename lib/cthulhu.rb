@@ -36,7 +36,9 @@ module Cthulhu
         self.env = Rails.env
       else
         self.env = ENV['CTHULHU_ENV']
-        raise "Invalid logger. Expected Logger but got #{logger.class.name}" unless logger.instance_of?(Logger)
+        unless logger.instance_of?(Logger)
+          logger = Logger.new(STDOUT)
+        end
       end
     else
       raise "Configuration requires a block."
@@ -143,7 +145,3 @@ require 'cthulhu/inbox'
 require 'cthulhu/queue'
 # Railtie
 require 'cthulhu/railtie' if Cthulhu.rails?
-
-# require models and handlers folder
-Dir["./app/models/**/*.rb"].each {|file| require file }
-Dir["./app/handlers/**/*.rb"].each {|file| require file }
