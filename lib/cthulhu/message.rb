@@ -170,7 +170,7 @@ module Cthulhu
       message_is_valid?
     end
 
-    def send
+    def queue
       if Cthulhu::Pool.thread.nil? || !Cthulhu::Pool.thread.alive?
         Cthulhu::Pool.start
       end
@@ -192,21 +192,23 @@ module Cthulhu
     end
 
     def message_is_valid?
-      raise "payload is nil" if payload.nil?
-      raise "headers is nil" if headers.nil?
-      raise "app_id is blank" if app_id.blank?
-      raise "properties is nil" if properties.nil?
-      raise "message_id is blank" if message_id.blank?
-      raise "reply_to is blank" if reply_to.blank?
+      params = []
+      params << "payload" if payload.nil?
+      params << "headers" if headers.nil?
+      params << "app_id" if app_id.blank?
+      params << "properties" if properties.nil?
+      params << "message_id" if message_id.blank?
+      params << "reply_to" if reply_to.blank?
       # raise "correlation_id is blank" if correlation_id.blank?
-      raise "cluster_id is blank" if cluster_id.blank?
-      raise "sender_fqan is blank" if sender_fqan.blank?
-      raise "group_id is blank" if group_id.blank?
-      raise "logger is nil" if logger.nil?
-      raise "content_type is blank" if content_type.blank?
-      raise "routing_key is .blank" if routing_key.blank?
-      raise "to is blank" if to.blank?
-      raise "timestamp is nil" if timestamp.nil?
+      params << "cluster_id" if cluster_id.blank?
+      params << "sender_fqan" if sender_fqan.blank?
+      params << "group_id" if group_id.blank?
+      params << "logger" if logger.nil?
+      params << "content_type" if content_type.blank?
+      params << "routing_key" if routing_key.blank?
+      params << "to" if to.blank?
+      params << "timestamp" if timestamp.nil?
+      raise "Missing parameters #{params}" if params.any?
     end
 
     def payload
