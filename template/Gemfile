@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'cthulhu', "~>0.5", git: "https://github.com/HealthWave/cthulhu.git"
+gem 'cthulhu', "__VERSION__", git: "https://github.com/HealthWave/cthulhu.git"
 gem 'json'
 gem 'httparty'
 group :development do

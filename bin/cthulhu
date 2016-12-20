@@ -59,6 +59,8 @@ def new_app(gem_path)
     # To write changes to the file, use:
     File.open(file_name, "w") {|file| file.puts new_contents }
   end
+  gemfile = File.read("#{Dir.pwd}/#{app_name}/Gemfile")
+  File.open("#{Dir.pwd}/#{app_name}/Gemfile", 'w') { |file| file.puts gemfile.gsub('__VERSION__', "~>#{Cthulhu.version}") }
 
   base_path = "./#{app_name}"
   dir_names = ["bin", "log", "tmp", "lib", "app", "app/handlers", "app/models", "spec", "config/initializers"]

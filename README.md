@@ -60,7 +60,7 @@ end
 
 Adding this to your `Gemfile`
 ```ruby
-  gem 'cthulhu', '~>0.5.0', git: 'https://github.com/HealthWave/cthulhu.git'
+  gem 'cthulhu', '~>0.5', git: 'https://github.com/HealthWave/cthulhu.git'
 ```
 Optional initializer
 ```ruby
