@@ -5,7 +5,7 @@ Cthulhu allows you to create a message network between apps using RabbitMQ as me
 ```bash
 git clone https://github.com/HealthWave/cthulhu.git
 cd cthulhu && gem build cthulhu.gemspec && gem install cthulhu-*.gem && rm cthulhu-*.gem && cd ..
-cthulhu new my-app
+cthulhu new my-app com.example
 cd my-app
 cthulhu handler example
 
