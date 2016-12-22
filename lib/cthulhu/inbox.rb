@@ -9,7 +9,7 @@ module Cthulhu
           inbox_exchange.bind(parent, routing_key: rk)
         end
         # unbinding routes removed from the routes file
-
+        # byebug
         bindings.each do |b|
           next unless b['source'] == parent.name
           inbox_exchange.unbind(b['source'], routing_key: b['routing_key'])

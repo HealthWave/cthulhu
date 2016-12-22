@@ -16,8 +16,6 @@ module Cthulhu
 
     end
 
-
-
     def self.call_global_route(message)
       klass = Object.const_get Cthulhu.global_route[:to]
       klass.new(message).handle_action(Cthulhu.global_route[:action])

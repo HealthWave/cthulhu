@@ -32,6 +32,8 @@ module Cthulhu
       self.rabbit_ssl ||= false
       self.rabbit_api_url ||= "http://#{self.rabbit_host}:15672/api"
       if rails? # RAILS is defined on config/initializers cthulhu.rb configure block on a rails app
+        # routes require handlers to be loaded before
+        Dir["./app/handlers/**/*.rb"].each {|file| require file }
         self.logger = Rails.logger
         self.env = Rails.env
       else
@@ -118,7 +120,7 @@ module Cthulhu
   end
   def self.organization_inbox_exchange
     return @@organization_inbox_exchange if @@organization_inbox_exchange
-    self.organization_inbox_exchange = self.channel.fanout(self.organization_inbox_exchange_name, auto_delete: false, durable: true)
+    self.organization_inbox_exchange = self.channel.topic(self.organization_inbox_exchange_name, auto_delete: false, durable: true)
   end
 
   def self.inbox_exchange
@@ -143,5 +145,3 @@ require 'cthulhu/pool'
 require 'cthulhu/notifier'
 require 'cthulhu/inbox'
 require 'cthulhu/queue'
-# Railtie
-require 'cthulhu/railtie' if Cthulhu.rails?

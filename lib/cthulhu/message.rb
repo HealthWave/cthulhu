@@ -88,8 +88,13 @@ module Cthulhu
     end
   end
 
-
   class Message
+    # Message attributes validations
+
+    @@validations = {}
+    def self.validate(payload_attribute, options = {})
+      @@validations[payload_attribute] = options
+    end
 
     attr_accessor :payload,
                   :headers, # Message headers
@@ -108,7 +113,8 @@ module Cthulhu
                   :content_type,
                   :raw_payload,
                   :routing_key,
-                  :to
+                  :to,
+                  :validations
 
     def initialize(
       payload:,
@@ -169,9 +175,12 @@ module Cthulhu
         persistent: true
       }
       message_is_valid?
+      validate_payload
     end
 
     def queue
+      self.timestamp = Time.now.to_i
+      prepare
       if Cthulhu::Pool.thread.nil? || !Cthulhu::Pool.thread.alive?
         Cthulhu::Pool.start
       end
@@ -179,8 +188,6 @@ module Cthulhu
     end
     # needs exchange creation and stuff.
     def send_now
-      self.timestamp = Time.now.to_i
-      prepare
       # for now we can only send it to the organization inbox exchange.
       # TODO: create Cthulhu::Peer class
       case to
@@ -190,6 +197,31 @@ module Cthulhu
         Cthulhu.inbox_exchange.publish(@payload, properties)
       end
       logger.info "MESSAGE SENT: #{self.inspect}"
+    end
+
+    def validate_payload
+      errors = []
+      @@validations.each do |attribute, options|
+        if options[:type]
+          if options[:type].is_a? Array
+            raise 'Array of types cannot be nil' unless options[:type].any?
+            options[:type].each do |type|
+              raise 'Type array must be made of existing classes.' unless type.is_a?(Class)
+            end
+            errors << "#{attribute} is onle of the following: #{options[:type]}" unless options[:type].include?(payload[attribute].class)
+          else
+            raise 'Type must be a class.' unless options[:type].is_a? Class
+            errors << "#{attribute} is not a #{options[:type]}" unless payload[attribute].is_a?(options[:type])
+          end
+        end
+        if options[:presence]
+          errors << "#{attribute} cannot be nil or blank" if payload[attribute].nil? || (payload[attribute].is_a? String && payload[attribute].blank?)
+        end
+      end
+      if errors.any?
+        logger.error "Message validation failed: #{errors}"
+        raise errors.to_s
+      end
     end
 
     def message_is_valid?

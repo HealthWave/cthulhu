@@ -91,8 +91,8 @@ def start_app(gem_path)
 end
 
 def get_logger
-  lgr = Cthulhu.logger.instance_variable_get(:@logdev).dev.inspect
-  case lgr
+  lgr = Cthulhu.logger.instance_variable_get(:@logdev).dev
+  case lgr.inspect
   when /.*IO.*/
     "STDOUT"
   when /.*File.*/
@@ -101,7 +101,7 @@ def get_logger
 end
 
 def start_console
-  exec "irb -r ./config/environment.rb"
+  exec "CONSOLE=true irb -r ./config/environment.rb"
 end
 
 if command && ARGV[1]
