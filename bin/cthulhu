@@ -80,7 +80,6 @@ def new_app(gem_path)
 end
 
 def start_app(gem_path)
-
   load_env_yml
   require "#{Dir.pwd}/config/environment"
   puts "Organization: #{Cthulhu.organization}"
@@ -89,7 +88,7 @@ def start_app(gem_path)
   puts "Inbox Exchange: #{Cthulhu.inbox_exchange_name}"
   puts "Organization Inbox Exchange: #{Cthulhu.organization_inbox_exchange_name}"
   puts "Logger: #{get_logger}"
-  Cthulhu::Application.start
+  require "#{Dir.pwd}/config/application"
 end
 
 def load_env_yml
