@@ -34,7 +34,7 @@ module Cthulhu
       if rails? # RAILS is defined on config/initializers cthulhu.rb configure block on a rails app
         # routes require handlers to be loaded before
         Dir["./app/handlers/**/*.rb"].each {|file| require file }
-        self.logger = Rails.logger
+        self.logger = Rails.logger.clone
         self.env = Rails.env
       else
         self.env = ENV['CTHULHU_ENV']

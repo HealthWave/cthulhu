@@ -90,7 +90,6 @@ module Cthulhu
 
   class Message
     # Message attributes validations
-
     @@validations = {}
     def self.validate(payload_attribute, options = {})
       @@validations[payload_attribute] = options

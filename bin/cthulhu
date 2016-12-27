@@ -80,6 +80,8 @@ def new_app(gem_path)
 end
 
 def start_app(gem_path)
+
+  load_env_yml
   require "#{Dir.pwd}/config/environment"
   puts "Organization: #{Cthulhu.organization}"
   puts "FQAN: #{Cthulhu.fqan}"
@@ -88,6 +90,17 @@ def start_app(gem_path)
   puts "Organization Inbox Exchange: #{Cthulhu.organization_inbox_exchange_name}"
   puts "Logger: #{get_logger}"
   Cthulhu::Application.start
+end
+
+def load_env_yml
+  if File.exists?('./config/env.yml')
+    require 'yaml'
+    file = File.read('./config/env.yml')
+    hash = YAML.load file
+    hash.each do |env, value|
+      ENV[env] = value.to_s
+    end
+  end
 end
 
 def get_logger
