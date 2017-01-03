@@ -8,6 +8,7 @@ module Cthulhu
     end
 
     def self.start(block: true)
+      return if Cthulhu.env == 'test' && Cthulhu.run_on_test_environment == false
       return if ENV['CONSOLE']
       puts "Starting #{Cthulhu.app_name}, enviroment #{Cthulhu.env}."
       puts "Cthulhu #{Cthulhu.version} loaded. Press CTRL+C to QUIT."
