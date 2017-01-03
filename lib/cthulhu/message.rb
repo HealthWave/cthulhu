@@ -27,11 +27,11 @@ module Cthulhu
       @delivery_info = delivery_info
       @properties = properties
       @headers = @properties.headers
-      @content_type = @properties.type
+      @content_type = @properties.content_type
       @raw_payload = payload
       case @content_type
       when 'application/json'
-        @payload = JSON.parse payload
+        @payload = JSON.parse payload, symbolize_names: true
       # when 'object/marshal-dump'
       #   @payload = Marshal.load(payload)
       else
