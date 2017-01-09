@@ -1,14 +1,14 @@
 PATH
   remote: .
   specs:
-    cthulhu (0.2.2)
+    cthulhu (0.5)
       bunny (>= 2.3.1)
 
 GEM
   remote: https://rubygems.org/
   specs:
     amq-protocol (2.0.1)
-    bunny (2.4.0)
+    bunny (2.6.2)
       amq-protocol (>= 2.0.1)
     diff-lcs (1.2.5)
     rspec (3.4.0)
@@ -33,4 +33,4 @@ DEPENDENCIES
   rspec
 
 BUNDLED WITH
-   1.12.4
+   1.13.6
