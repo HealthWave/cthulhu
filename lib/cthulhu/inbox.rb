@@ -18,7 +18,7 @@ module Cthulhu
       end
 
       def get_bindings
-        options = {basic_auth: {username: 'cthulhu', password: 'cthulhu'}}
+        options = {basic_auth: {username: ENV['RABBIT_USER'], password: ENV['RABBIT_PW']}}
         url = "#{Cthulhu.rabbit_api_url}/exchanges/#{URI.escape(Cthulhu.rabbit_vhost, '/')}/#{Cthulhu.inbox_exchange_name}/bindings/destination"
         response = ::HTTParty.get(url, options)
         JSON.parse(response.body)
