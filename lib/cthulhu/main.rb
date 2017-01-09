@@ -10,6 +10,7 @@ module Cthulhu
     def self.start(block: true)
       return if Cthulhu.env == 'test' && Cthulhu.run_on_test_environment == false
       return if ENV['CONSOLE']
+      return if File.split($0).last == 'rake' # do not run when rake tasks start
       puts "Starting #{Cthulhu.app_name}, enviroment #{Cthulhu.env}."
       puts "Cthulhu #{Cthulhu.version} loaded. Press CTRL+C to QUIT."
       # Start inbox queue
