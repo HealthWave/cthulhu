@@ -113,7 +113,8 @@ module Cthulhu
                   :raw_payload,
                   :routing_key,
                   :to,
-                  :validations
+                  :validations,
+                  :valid
 
     def initialize(
       payload:,
@@ -160,6 +161,10 @@ module Cthulhu
       end
     end
 
+    def valid?
+      valid
+    end
+
     def prepare
       self.properties = {
         routing_key: routing_key,
@@ -175,6 +180,7 @@ module Cthulhu
       }
       message_is_valid?
       validate_payload
+      self.valid = true
     end
 
     def queue
@@ -187,6 +193,10 @@ module Cthulhu
     end
     # needs exchange creation and stuff.
     def send_now
+      unless valid?
+        self.timestamp = Time.now.to_i
+        prepare
+      end
       # for now we can only send it to the organization inbox exchange.
       # TODO: create Cthulhu::Peer class
       case to
