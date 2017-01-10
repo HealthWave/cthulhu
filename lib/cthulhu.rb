@@ -113,7 +113,7 @@ module Cthulhu
   end
 
   def self.channel
-    return @@channel if @@channel
+    return @@channel if @@channel and @channel.is_a?(Bunny::Channel) and [:opening, :open].include?(@@channel.status)
     conn = ::Bunny.new(user: rabbit_user, pass: rabbit_pw, host: rabbit_host, vhost: rabbit_vhost, port: rabbit_port)
     conn.start
     self.channel = conn.create_channel
