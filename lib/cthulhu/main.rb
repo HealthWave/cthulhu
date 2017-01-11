@@ -11,6 +11,10 @@ module Cthulhu
       return if Cthulhu.env == 'test' && Cthulhu.run_on_test_environment == false
       return if ENV['CONSOLE']
       return if File.split($0).last == 'rake' # do not run when rake tasks start
+      if Cthulhu.write_pidfile
+        Cthulhu.pidfile = "#{Dir.pwd}/tmp/pids/cthulhu.pid"
+        File.write(Cthulhu.pidfile, Process.pid)
+      end
       puts "Starting #{Cthulhu.app_name}, enviroment #{Cthulhu.env}."
       puts "Cthulhu #{Cthulhu.version} loaded. Press CTRL+C to QUIT."
       # Start inbox queue

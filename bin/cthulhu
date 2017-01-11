@@ -63,7 +63,7 @@ def new_app(gem_path)
   File.open("#{Dir.pwd}/#{app_name}/Gemfile", 'w') { |file| file.puts gemfile.gsub('__VERSION__', "~>#{Cthulhu.version}") }
 
   base_path = "./#{app_name}"
-  dir_names = ["bin", "log", "tmp", "lib", "app", "app/handlers", "app/models", "spec", "config/initializers"]
+  dir_names = ["bin", "log", "tmp", "tmp/pids", "lib", "app", "app/handlers", "app/models", "spec", "config/initializers"]
 
   dir_names.each do |dir_name|
     path = base_path + "/#{dir_name}"
@@ -88,6 +88,7 @@ def start_app(gem_path)
   puts "Inbox Exchange: #{Cthulhu.inbox_exchange_name}"
   puts "Organization Inbox Exchange: #{Cthulhu.organization_inbox_exchange_name}"
   puts "Logger: #{get_logger}"
+  Cthulhu.write_pidfile = true
   require "#{Dir.pwd}/config/application"
 end
 
