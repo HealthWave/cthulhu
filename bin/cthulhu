@@ -90,6 +90,9 @@ def start_app(gem_path)
   puts "Logger: #{get_logger}"
   Cthulhu.write_pidfile = true
   require "#{Dir.pwd}/config/application"
+  if Cthulhu.rails
+    Cthulhu::Application.start
+  end
 end
 
 def load_env_yml
