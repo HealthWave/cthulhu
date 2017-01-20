@@ -185,6 +185,7 @@ module Cthulhu
 
     def queue
       self.timestamp = Time.now.to_i
+      return true if Cthulhu.mock_messages
       prepare
       if Cthulhu::Pool.thread.nil? || !Cthulhu::Pool.thread.alive?
         Cthulhu::Pool.start

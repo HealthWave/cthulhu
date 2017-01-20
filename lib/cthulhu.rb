@@ -14,7 +14,7 @@ module Cthulhu
                  :organization_inbox_exchange, :organization_inbox_exchange_name,
                  :fqan, :rails, :env, :peers, :consumer_tag,
                  :rabbit_user, :rabbit_pw, :rabbit_host, :rabbit_port, :rabbit_vhost, :rabbit_ssl, :rabbit_api_url,
-                 :run_on_test_environment, :write_pidfile, :pidfile
+                 :run_on_test_environment, :write_pidfile, :pidfile, :mock_messages
 
   def self.configure &block
     # set rails to false by default.
