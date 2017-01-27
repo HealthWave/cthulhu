@@ -1,4 +1,0 @@
-#!/bin/bash
-APP_NAME=__APP_NAME__
-container_id=$(docker ps |grep "registry.fullscript.io:5000/images/$APP_NAME"|cut -f1 -d" ")
-docker attach $container_id

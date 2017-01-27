@@ -10,4 +10,4 @@ COPY Gemfile* $APP_HOME/
 RUN bundle install
 COPY . $APP_HOME/
 COPY docker/files/bashrc /root/.bashrc
-CMD ["/__APP_NAME__/docker/bin/cmd"]
+CMD ["cthulhu", "s"]

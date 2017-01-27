@@ -1,49 +1,63 @@
 require 'securerandom'
 require 'json'
 module Cthulhu
+  using Cthulhu # activate refinements
   class IncomingMessage
-    attr_accessor :payload, :subject, :action, :headers, :options, :from, :delivery_info, :properties, :uuid, :timestamp, :logger
+    attr_accessor :payload,
+                  :headers, # Message headers
+                  :options,
+                  :app_id, # App Name of the sender. Example: my-app
+                  :delivery_info,
+                  :properties, # Message properties
+                  :message_id, # Per message unique ID
+                  :reply_to, # When/if replying, send to this exchange. Defaults to the organization inbox.
+                  :correlation_id, # Used to correlate RPC responses with requests. What message this message is a reply to (or corresponds to), as set by the publisher. This should be set to the UUID of the incoming message if it is an RPC call
+                  :cluster_id, # This is the organization name of the sender. Set by the publisher. Example: com.example
+                  :sender_fqan, # Fully Qualified App Name of the sender. Example: com.example.my-app
+                  :group_id, # Unique ID to group related messages. That makes it possible to trace them. Set by the sender as a header. Immutable
+                  :timestamp, # Message timestamp, as set by the publisher
+                  :logger,
+                  :content_type,
+                  :raw_payload,
+                  :routing_key,
+                  :to
+
     def initialize(delivery_info, properties, payload)
-      @logger = Cthulhu::Application.logger.clone
+      @logger = Cthulhu.logger.clone
       @delivery_info = delivery_info
       @properties = properties
-      @payload = JSON.parse payload, object_class: OpenStruct
       @headers = @properties.headers
-      @subject = @headers["subject"]
-      @action = @headers["action"].downcase if headers['action'].is_a?(String)
-      @options = @headers["options"]
-      @from = @headers["from"]
-      @uuid = properties.message_id
-      @timestamp = properties.timestamp
-    end
-
-    def valid?
-      # carefully inspect the message
-      if  (
-              uuid.is_a?(String) &&
-              subject.is_a?(String) && !subject.blank?
-              action.is_a?(String) && !action.blank?
-              payload.is_a?(OpenStruct) &&
-              timestamp.is_a?(Time) &&
-              from.is_a?(String) && !from.blank?
-            )
-      logger.formatter = proc do |severity, datetime, progname, m|
-        "#{timestamp} #{Cthulhu::Application.name} #{uuid} #{from} #{m}\n"
-      end
-      logger.info "Valid message: #{self.to_hash}"
-      return true
+      @content_type = @properties.content_type
+      @raw_payload = payload
+      case @content_type
+      when 'application/json'
+        @payload = JSON.parse payload, symbolize_names: true
+      # when 'object/marshal-dump'
+      #   @payload = Marshal.load(payload)
       else
-        logger.formatter = proc do |severity, datetime, progname, m|
-          "E -- #{datetime} ERROR #{m}\n"
-        end
-        logger.error "Invalid message: #{self.to_hash}"
-        return false
+        @payload = payload
+      end
+      @routing_key = delivery_info.routing_key
+      @app_id = properties.app_id
+      @message_id = properties.message_id
+      @reply_to = properties.reply_to
+      @timestamp = properties.timestamp
+      @group_id = headers['group_id']
+      @cluster_id = properties.cluster_id
+      @sender_fqan = "#{@cluster_id}.#{@app_id}"
+      @correlation_id = properties.correlation_id
+      @to = delivery_info.exchange
+      @logger.formatter = proc do |severity, datetime, progname, m|
+        "#{datetime.to_f} #{severity} SENT_AT=#{@timestamp.to_i} GROUP_ID=#{@group_id} FROM=#{@sender_fqan} TO=#{@to} MESSAGE_ID=#{@message_id} CORRELATION_ID=#{@correlation_id|| "nil"} | #{m}\n"
       end
     end
 
-    def reply(subject:, action:, payload:)
-      m = {subject: subject, action: action, payload: payload}
-      Message.broadcast m, uuid
+
+
+    def reply(payload:)
+      # TODO: https://www.rabbitmq.com/tutorials/tutorial-six-ruby.html
+      # message = Message.new(payload: payload, routing_key: topic,)
+      # Message.broadcast m, message_id
     end
 
     def to_hash
@@ -53,52 +67,200 @@ module Cthulhu
       end
       hash
     end
+
+    def call_handler
+      keys = Cthulhu.routes.keys
+      matching_route = ''
+      Cthulhu.routes_exp.each do |route, route_exp|
+        if self.routing_key.match route_exp
+          matching_route = route
+          break
+        end
+      end
+      if matching_route.blank?
+        logger.info "NO ROUTE MATCHED #{self.routing_key}"
+        return :ignore
+      end
+      klass, method = Cthulhu.routes[matching_route]
+      # Example: 'order.created' => 'ExampleHandler#action'
+      logger.info "ROUTING #{self.routing_key} => #{klass}##{method}"
+      klass.new(self).handle_action(method)
+    end
   end
 
-
   class Message
-    def self.broadcast message, uuid=nil
-      validate(message)
-      if Cthulhu::Application.dry_run
-        puts "Dry run mode enabled. Messages will not be sent."
-        return
-      end
-      exchange = Cthulhu.channel.fanout("broadcast", durable: true)
-
-      payload = message[:payload].to_json
-      options = {
-        message_id: uuid || SecureRandom.uuid,
-        timestamp: Time.now.to_i,
-        headers: {
-          from: Cthulhu::Application.name,
-          subject: message[:subject],
-          action: message[:action],
-          options: message[:options]
-        }
-      }
-      exchange.publish(payload, options)
+    # Message attributes validations
+    @@validations = {}
+    def self.validate(payload_attribute, options = {})
+      @@validations[payload_attribute] = options
     end
 
-    # def self.direct_message payload
-    #   exchange = Cthulhu.channel.default_exchange
-    #   message = build_message(payload)
-    #
-    #   exchange.publish(message, routing_key: Cthulhu::Application.name)
-    # end
-    #
-    # def self.build_message payload
-    #   validate(payload)
-    #   payload.merge!(uuid: SecureRandom.uuid,
-    #                  from: Cthulhu::Application.name,
-    #                  timestamp: DateTime.now
-    #                  ).to_json
-    # end
+    attr_accessor :payload,
+                  :headers, # Message headers
+                  :options,
+                  :app_id, # App Name of the sender. Example: my-app
+                  :delivery_info,
+                  :properties, # Message properties
+                  :message_id, # Per message unique ID
+                  :reply_to, # When/if replying, send to this exchange. Defaults to the organization inbox.
+                  :correlation_id, # Used to correlate RPC responses with requests. What message this message is a reply to (or corresponds to), as set by the publisher. This should be set to the UUID of the incoming message if it is an RPC call
+                  :cluster_id, # This is the organization name of the sender. Set by the publisher. Example: com.example
+                  :sender_fqan, # Fully Qualified App Name of the sender. Example: com.example.my-app
+                  :group_id, # Unique ID to group related messages. That makes it possible to trace them. Set by the sender as a header. Immutable
+                  :timestamp, # Message timestamp, as set by the publisher
+                  :logger,
+                  :content_type,
+                  :raw_payload,
+                  :routing_key,
+                  :to,
+                  :validations,
+                  :valid
 
-    def self.validate message
-      raise "Message must have a subject" if message[:subject].blank?
-      raise "Message must have an action" if message[:action].blank?
-      raise "Message must have a message (even if it is empty)" if message[:payload].empty?
-      true
+    def initialize(
+      payload:,
+      headers: {},
+      options: nil,
+      app_id: Cthulhu.app_name,
+      delivery_info: nil,
+      properties: nil,
+      message_id: SecureRandom.uuid,
+      reply_to: Cthulhu.organization_inbox_exchange_name,
+      correlation_id: nil,
+      cluster_id: Cthulhu.organization_inbox_exchange_name,
+      sender_fqan: Cthulhu.fqan,
+      group_id: SecureRandom.uuid,
+      logger: Cthulhu.logger.clone,
+      content_type: nil,
+      routing_key:,
+      to: Cthulhu.organization_inbox_exchange_name
+                  )
+      @options = options
+      @logger = logger
+      @headers = headers
+      @raw_payload = payload
+      if payload.is_a? Hash
+        @content_type = 'application/json'
+        @payload = payload.to_json
+      else
+        @content_type = 'application/octet-stream'
+        @payload = payload
+      end
+      @routing_key = routing_key
+      @app_id = app_id
+      @message_id = message_id
+      @reply_to = reply_to
+      # @timestamp = timestamp # timestamp is set when sending
+      @group_id = group_id
+      @cluster_id = cluster_id
+      @sender_fqan = sender_fqan
+      @correlation_id = correlation_id
+      @to = to
+      @headers = headers.merge!(sender_fqan: sender_fqan, group_id: group_id)
+      @logger.formatter = proc do |severity, datetime, progname, m|
+        "#{datetime.to_f} #{severity} SENT_AT=#{@timestamp.to_i} GROUP_ID=#{@group_id} FROM=#{@sender_fqan} TO=#{@to} MESSAGE_ID=#{@message_id} CORRELATION_ID=#{@correlation_id|| "nil"} | #{m}\n"
+      end
+    end
+
+    def valid?
+      valid
+    end
+
+    def prepare
+      self.properties = {
+        routing_key: routing_key,
+        content_type: content_type,
+        reply_to: reply_to,
+        app_id: app_id,
+        correlation_id: correlation_id,
+        message_id: message_id,
+        cluster_id: cluster_id,
+        headers: headers,
+        timestamp: timestamp,
+        persistent: true
+      }
+      message_is_valid?
+      validate_payload
+      self.valid = true
+    end
+
+    def queue
+      self.timestamp = Time.now.to_i
+      return true if Cthulhu.mock_messages
+      prepare
+      if Cthulhu::Pool.thread.nil? || !Cthulhu::Pool.thread.alive?
+        Cthulhu::Pool.start
+      end
+      CTHULHU_QUEUE << self
+    end
+    # needs exchange creation and stuff.
+    def send_now
+      unless valid?
+        self.timestamp = Time.now.to_i
+        prepare
+      end
+      # for now we can only send it to the organization inbox exchange.
+      # TODO: create Cthulhu::Peer class
+      case to
+      when Cthulhu.organization_inbox_exchange_name
+        Cthulhu.organization_inbox_exchange.publish(@payload, properties)
+      when Cthulhu.inbox_exchange_name
+        Cthulhu.inbox_exchange.publish(@payload, properties)
+      end
+      logger.info "MESSAGE SENT: #{self.inspect}"
+    end
+
+    def validate_payload
+      errors = []
+      @@validations.each do |attribute, options|
+        if options[:type]
+          if options[:type].is_a? Array
+            raise 'Array of types cannot be nil' unless options[:type].any?
+            options[:type].each do |type|
+              raise 'Type array must be made of existing classes.' unless type.is_a?(Class)
+            end
+            errors << "#{attribute} is onle of the following: #{options[:type]}" unless options[:type].include?(payload[attribute].class)
+          else
+            raise 'Type must be a class.' unless options[:type].is_a? Class
+            errors << "#{attribute} is not a #{options[:type]}" unless payload[attribute].is_a?(options[:type])
+          end
+        end
+        if options[:presence]
+          errors << "#{attribute} cannot be nil or blank" if payload[attribute].nil? || (payload[attribute].is_a? String && payload[attribute].blank?)
+        end
+      end
+      if errors.any?
+        logger.error "Message validation failed: #{errors}"
+        raise errors.to_s
+      end
+    end
+
+    def message_is_valid?
+      params = []
+      params << "payload" if payload.nil?
+      params << "headers" if headers.nil?
+      params << "app_id" if app_id.blank?
+      params << "properties" if properties.nil?
+      params << "message_id" if message_id.blank?
+      params << "reply_to" if reply_to.blank?
+      # raise "correlation_id is blank" if correlation_id.blank?
+      params << "cluster_id" if cluster_id.blank?
+      params << "sender_fqan" if sender_fqan.blank?
+      params << "group_id" if group_id.blank?
+      params << "logger" if logger.nil?
+      params << "content_type" if content_type.blank?
+      params << "routing_key" if routing_key.blank?
+      params << "to" if to.blank?
+      params << "timestamp" if timestamp.nil?
+      raise "Missing parameters #{params}" if params.any?
+    end
+
+    def payload
+      p = @payload
+      if content_type == 'application/json'
+        JSON.parse p
+      else
+        p
+      end
     end
   end
 end

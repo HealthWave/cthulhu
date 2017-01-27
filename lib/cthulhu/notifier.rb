@@ -24,7 +24,8 @@ module Cthulhu
 
     module InstanceMethods
       def cthulhu_publish(action, options)
-        Cthulhu.publish(subject: self.class.name, action: action, options: options, payload: self.attributes )
+        rk = "#{self.class.name}.#{action}"
+        Cthulhu::Message.new(payload: self.attributes, routing_key: rk, options: options).queue
       end
     end
   end
