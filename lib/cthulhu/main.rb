@@ -7,7 +7,7 @@ module Cthulhu
       Cthulhu.logger
     end
 
-    def self.start(block: true, manual_ack: false)
+    def self.start(block: true, manual_ack: true)
       return if Cthulhu.env == 'test' && Cthulhu.run_on_test_environment == false
       return if ENV['CONSOLE']
       return if File.split($0).last == 'rake' # do not run when rake tasks start
