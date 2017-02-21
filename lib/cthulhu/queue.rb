@@ -1,9 +1,10 @@
 module Cthulhu
   class Queue
-    attr_accessor :type, :block, :logger
-    def initialize(type, block: )
+    attr_accessor :type, :block, :logger, :manual_ack
+    def initialize(type, block:, manual_ack:)
       @type = type
       @block = block
+      @manual_ack = manual_ack
       @logger = ::Cthulhu.logger.clone
     end
 
@@ -20,7 +21,7 @@ module Cthulhu
     def start_inbox
       queue = Cthulhu.channel.queue(Cthulhu.inbox_exchange_name, auto_delete: false, durable: true, exclusive: false)
       queue.bind(Cthulhu.inbox_exchange)
-      queue.subscribe(consumer_tag: Cthulhu.consumer_tag, block: self.block, manual_ack: true) do |delivery_info, properties, payload|
+      queue.subscribe(consumer_tag: Cthulhu.consumer_tag, block: self.block, manual_ack: manual_ack) do |delivery_info, properties, payload|
         incoming_message = Cthulhu::IncomingMessage.new(delivery_info, properties, payload)
         case incoming_message.call_handler
         when :ack
