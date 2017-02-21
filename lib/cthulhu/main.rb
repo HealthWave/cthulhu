@@ -7,7 +7,7 @@ module Cthulhu
       Cthulhu.logger
     end
 
-    def self.start(block: true)
+    def self.start(block: true, manual_ack: false)
       return if Cthulhu.env == 'test' && Cthulhu.run_on_test_environment == false
       return if ENV['CONSOLE']
       return if File.split($0).last == 'rake' # do not run when rake tasks start
@@ -18,7 +18,7 @@ module Cthulhu
       puts "Starting #{Cthulhu.app_name}, enviroment #{Cthulhu.env}."
       puts "Cthulhu #{Cthulhu.version} loaded. Press CTRL+C to QUIT."
       # Start inbox queue
-      Cthulhu::Queue.new(:inbox, block: block).start
+      Cthulhu::Queue.new(:inbox, block: block, manual_ack: manual_ack).start
 
     end
 
